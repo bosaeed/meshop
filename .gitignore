@@ -1,0 +1,11 @@
+.aider*
+tester.py
+__pycache__
+.vscode/settings.json
+dircreator.ps1
+utils.py
+wsserver.py
+.env
+utils.py
+meshop/backend/tests.py
+backend/tests.py
