@@ -9,3 +9,4 @@ wsserver.py
 utils.py
 meshop/backend/tests.py
 backend/tests.py
+.continueignore

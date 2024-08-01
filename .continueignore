@@ -1,2 +1,11 @@
-meshop/frontend/package-lock.json
-meshop/frontend/package.json
+frontend/package-lock.json
+frontend/package.json
+.gitignore
+backend\scripts\init_database.py
+backend\scripts\products.csv
+backend\scripts\products_test.csv
+init_database.py
+products.csv
+products_test.csv
+package-lock.json
+package.json

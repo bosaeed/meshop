@@ -32,13 +32,13 @@
     justify-content: center;
     align-items: flex-start;
     padding: 20px;
-    max-width: 80%; /* Set to 80% of the screen width */
+    max-width: 80%; 
     margin: 0 auto;
     gap: 20px;
   }
 
   .main-image, .product-info {
-    flex: 1 1 50%; /* Each takes up half of the space in wide screens */
+    flex: 1 1 40%; 
     display: flex;
     flex-direction: column;
     align-items: center;
