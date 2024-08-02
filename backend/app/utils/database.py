@@ -1,7 +1,7 @@
 # meshop/backend/app/utils/database.py
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from bson import ObjectId
+from app.utils.embedding import embedding_service
 from dotenv import load_dotenv
 import os
 
@@ -16,8 +16,28 @@ PRODUCTS_VECTOR_INDEX = "products_vector_index"
 PRODUCT_SEARCH_FIELD = "name"
 PRODUCTS_VECTOR_FIELD= "embedding"
 
+unique_dict = {}
+
 async def get_collection(collection_name: str):
     return db[collection_name]
+
+async def get_unique(collection_name: str , field_name: str):
+    collection = await get_collection(collection_name)
+
+    # if unique_dict.get(field_name):
+    #     return unique_dict.get(field_name)
+    # Define the aggregation pipeline
+    pipeline = [
+        { "$unwind": f"${field_name}" },  # Step 1: Unwind the list field
+        { "$group": { "_id": f"${field_name}" } },  # Step 2: Group by the list element
+        { "$project": { "_id": 0, "uniqueValue": "$_id" } }  # Step 3: Project the unique values
+    ]
+
+    # Execute the aggregation pipeline
+    results = await collection.aggregate(pipeline).to_list(length=None)
+    # results = await collection.distinct(field_name)
+    unique_dict[field_name] = results
+    return results
 
 async def insert_one(collection_name: str, document: dict):
     collection = await get_collection(collection_name)
@@ -47,8 +67,9 @@ async def delete_one(collection_name: str, query: dict):
 
 
 
-async def hybrid_search(collection_name: str, vector_query: list, text_query: str,  limit: int = 20):
+async def hybrid_search(collection_name: str, query: str,  limit: int = 20):
     collection = await get_collection(collection_name)
+    vector_query = embedding_service.get_embedding(query)
     
 
     pipeline = [
@@ -102,7 +123,7 @@ async def hybrid_search(collection_name: str, vector_query: list, text_query: st
                         "$search": {
                             "index": PRODUCT_SEARCH_INDEX,
                             "text": {
-                                "query": text_query,
+                                "query": query,
                                 "path": ["name","description"],
                                  "fuzzy": {
                                     "maxEdits": 2,
@@ -196,4 +217,5 @@ async def get_autocomplete(collection_name: str,query: str):
             {"_id": 0, "name": 1}
         }
     ]
-    return await collection.aggregate(pipeline).to_list(length=None)
+    autocomplete_list = await collection.aggregate(pipeline).to_list(length=None)
+    return [item["name"] for item in autocomplete_list]

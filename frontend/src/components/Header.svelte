@@ -20,12 +20,4 @@
       gap: 1rem;
     }
   
-    nav a {
-      color: white;
-      text-decoration: none;
-    }
-  
-    nav a:hover {
-      text-decoration: underline;
-    }
   </style>

@@ -11,15 +11,26 @@ class EmbeddingService:
             base_url="https://integrate.api.nvidia.com/v1"
         )
         self.model = "nvidia/nv-embed-v1"
-
+        self.embed_cache = {}
     def get_embedding(self, text: str, input_type: str = "query") -> List[float]:
+        # Check embed_cache before request
+        cache_key = (text, input_type)
+        if cache_key in self.embed_cache:
+            return self.embed_cache[cache_key]
+        
+        # Make a request if not present in cache
         response = self.client.embeddings.create(
             input=[text],
             model=self.model,
             encoding_format="float",
             extra_body={"input_type": input_type, "truncate": "NONE"}
         )
-        return response.data[0].embedding
+        
+        # Extract and cache the embedding
+        embedding = response.data[0].embedding
+        self.embed_cache[cache_key] = embedding
+
+        return embedding
 
     def get_embeddings(self, texts: List[str], input_type: str = "query") -> List[List[float]]:
         response = self.client.embeddings.create(

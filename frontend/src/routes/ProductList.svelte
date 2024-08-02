@@ -26,7 +26,7 @@
     product.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  $: if (websocket && searchTerm) {
+  $: if (websocket && searchTerm.length >= 3) {
     websocket.send(JSON.stringify({ user_input: searchTerm }));
   }
 
@@ -53,7 +53,8 @@
     recognition.onresult = (event) => {
       const speechResult = event.results[0][0].transcript;
       console.log('Speech result:', speechResult);
-      searchTerm = speechResult;
+      websocket.send(JSON.stringify({ user_voice_input: speechResult }));
+      // searchTerm = speechResult;
     };
 
     recognition.onspeechend = () => {

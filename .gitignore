@@ -10,3 +10,5 @@ utils.py
 meshop/backend/tests.py
 backend/tests.py
 .continueignore
+backend/collected_content.txt
+backend/scripts/tests.py
