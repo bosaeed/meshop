@@ -4,8 +4,7 @@ from app.routers import products, users, orders
 from app.routers.websocket import handle_connection  # Import the WebSocket handler
 from dotenv import load_dotenv
 import os
-# import asyncio
-# import websockets
+
 
 load_dotenv()
 
@@ -36,5 +35,6 @@ async def recommendation_websocket(websocket: WebSocket):
     while True:
         data = await websocket.receive_text()
         print(data)
-        await handle_connection(data, None)  # Call the new WebSocket handler (adjust as necessary)
-        # await websocket.send_text(f"Message text was: {data}")
+        output = await handle_connection(data, None)  # Call the new WebSocket handler (adjust as necessary)
+        if output:
+            await websocket.send_text(output)

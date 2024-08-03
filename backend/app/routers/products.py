@@ -2,7 +2,7 @@ from typing import Dict, List
 from fastapi import APIRouter, HTTPException ,status
 from app.models.product import Product, ProductCreate
 from app.utils.database import insert_one, find_many, find_one
-from app.utils.embedding import embedding_service
+from app.utils.embedding import EmbeddingService
 from bson import ObjectId
 import os
 
@@ -19,6 +19,7 @@ async def create_product(product: ProductCreate):
     product_dict = product.model_dump(by_alias=True, exclude=["id"])
     print(product_dict)
     # Get embedding for a product description
+    embedding_service = EmbeddingService()
     product_dict["embedding"] = embedding_service.get_embedding(get_embedding_text(product), input_type="query")
     product_id = await insert_one("products", product_dict)
     return {**product_dict, "id": product_id}
@@ -28,6 +29,7 @@ async def create_product(product: ProductCreate):
 async def create_products(products: List[ProductCreate]):
     product_dicts = [product.model_dump(by_alias=True, exclude=["id"]) for product in products]
     texts = [get_embedding_text(product) for product in products]
+    embedding_service = EmbeddingService()
     lazy_embeddings = embedding_service.get_embeddings(texts, input_type="document")
     
     created_products = []
@@ -45,7 +47,9 @@ async def create_products(products: List[ProductCreate]):
 async def get_products():
     limit = 5
     projection = {"embedding": 0}
-    return await find_many("products", {},projection ,limit=limit)
+    products = await find_many("products", {},projection ,limit=limit)
+    print(products)
+    return products
 
 @router.get("/{product_id}", 
             response_model=Product,

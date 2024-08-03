@@ -41,11 +41,12 @@ class EmbeddingService:
         )
         return [data.embedding for data in response.data]
 
-embedding_service = EmbeddingService()
+
 
 # Example usage:
 if __name__ == "__main__":
     # Single embedding
+    embedding_service = EmbeddingService()
     query = "What is the capital of France?"
     embedding = embedding_service.get_embedding(query)
     print(f"Embedding for '{query}':")

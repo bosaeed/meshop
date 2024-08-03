@@ -1,2 +1,4 @@
-dspy-ai==0.11.0
-openai==0.27.0
+dspy-ai
+openai
+uvicorn
+fastapi

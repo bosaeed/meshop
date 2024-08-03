@@ -1,7 +1,7 @@
 # meshop/backend/app/utils/database.py
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from app.utils.embedding import embedding_service
+from app.utils.embedding import EmbeddingService
 from dotenv import load_dotenv
 import os
 
@@ -69,6 +69,7 @@ async def delete_one(collection_name: str, query: dict):
 
 async def hybrid_search(collection_name: str, query: str,  limit: int = 20):
     collection = await get_collection(collection_name)
+    embedding_service = EmbeddingService()
     vector_query = embedding_service.get_embedding(query)
     
 
@@ -109,7 +110,15 @@ async def hybrid_search(collection_name: str, query: str,  limit: int = 20):
                 "vs_score": 1,
                 "_id": "$docs._id",
                 "name": f"$docs.{PRODUCT_SEARCH_FIELD}",
-                "vscore": 1,
+                "description": "$docs.description",
+                "sale_price": "$docs.sale_price",
+                "regular_price": "$docs.regular_price",
+                "categories": "$docs.categories",
+                "vendor": "$docs.vendor",
+                "type": "$docs.type",
+                "tags": "$docs.tags",
+                "images": "$docs.images",
+                "vscore": 1
                 # 'vscore': {
                 #     '$meta': 'vectorSearchScore'
                 # }
@@ -157,7 +166,17 @@ async def hybrid_search(collection_name: str, query: str,  limit: int = 20):
                         "$project": {
                             "fts_score": 1,
                             "_id": "$docs._id",
-                            "name": f"$docs.{PRODUCT_SEARCH_FIELD}"
+                            "name": f"$docs.{PRODUCT_SEARCH_FIELD}",
+                            "description": "$docs.description",
+                            "sale_price": "$docs.sale_price",
+                            "regular_price": "$docs.regular_price",
+                            "categories": "$docs.categories",
+                            "vendor": "$docs.vendor",
+                            "type": "$docs.type",
+                            "tags": "$docs.tags",
+                            "images": "$docs.images",
+                            "vscore":{"$add": [0, 0, 0]}
+                            
                         }
                     }
                 ]
@@ -167,6 +186,14 @@ async def hybrid_search(collection_name: str, query: str,  limit: int = 20):
             "$group": {
                 "_id": "$_id",
                 "name": {"$first": "$name"},
+                "description": {"$first": "$description"},
+                "sale_price": {"$first": "$sale_price"},
+                "regular_price": {"$first": "$regular_price"},
+                "categories": {"$first": "$categories"},
+                "vendor": {"$first": "$vendor"},
+                "type": {"$first": "$type"},
+                "tags": {"$first": "$tags"},
+                "images": {"$first": "$images"},
                 "vs_score": {"$max": "$vs_score"},
                 "vscore": {"$max": "$vscore"},
                 "fts_score": {"$max": "$fts_score"}
@@ -176,6 +203,14 @@ async def hybrid_search(collection_name: str, query: str,  limit: int = 20):
             "$project": {
                 "_id": 1,
                 "name": 1,
+                "description": 1,
+                "sale_price": 1,
+                "regular_price": 1,
+                "categories": 1,
+                "vendor": 1,
+                "type": 1,
+                "tags": 1,
+                "images": 1,
                 "vs_score": {"$ifNull": ["$vs_score", 0]},
                 "vscore": {"$ifNull": ["$vscore", 0]},
                 "fts_score": {"$ifNull": ["$fts_score", 0]}
@@ -185,7 +220,16 @@ async def hybrid_search(collection_name: str, query: str,  limit: int = 20):
             "$project": {
                 "score": {"$add": ["$fts_score", "$vs_score"]},
                 "_id": 1,
+                "id": "$_id",
                 "name": 1,
+                "description": 1,
+                "sale_price": 1,
+                "regular_price": 1,
+                "categories": 1,
+                "vendor": 1,
+                "type": 1,
+                "tags": 1,
+                "images": 1,
                 "vs_score": 1,
                 "vscore": 1,
                 "fts_score": 1

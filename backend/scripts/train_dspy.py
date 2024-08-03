@@ -37,22 +37,7 @@ def recomendation_system_metric(example, pred):
 trainset = [
     dspy.Example( user_input="laptop"),
     dspy.Example( user_input="smartphone"),
-    dspy.Example( user_input="laptop"),
-    dspy.Example( user_input="smartphone"),
-    dspy.Example( user_input="laptop"),
-    dspy.Example( user_input="smartphone"),
-    dspy.Example( user_input="laptop"),
-    dspy.Example( user_input="smartphone"),
-    dspy.Example( user_input="laptop"),
-    dspy.Example( user_input="smartphone"),
-    dspy.Example( user_input="laptop"),
-    dspy.Example( user_input="smartphone"),
-    dspy.Example( user_input="laptop"),
-    dspy.Example( user_input="smartphone"),
-    dspy.Example( user_input="laptop"),
-    dspy.Example( user_input="smartphone"),
-    dspy.Example( user_input="laptop"),
-    dspy.Example( user_input="smartphone"),
+
 ]
 
 # Optimize the pipeline using BootstrapFewShot
