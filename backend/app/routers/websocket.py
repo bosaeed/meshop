@@ -12,7 +12,7 @@ class JSONEncoder(json.JSONEncoder):
 
 last_products = []
 
-async def handle_connection(message, _):
+async def handle_connection(message, websocket=None):
     """Handles incoming messages from a WebSocket connection."""
     global last_products
     # async for message in websocket:
@@ -21,19 +21,20 @@ async def handle_connection(message, _):
     print(user_input)
     if user_input:
         # prediction = await process_user_input(user_input, last_products )
-        prediction = process_user_input(user_input, last_products)
+        prediction = await process_user_input(user_input, last_products ,websocket=websocket)
         
         output = {}
         if hasattr(prediction, 'error'):
             output['error'] = prediction.error
         elif prediction.action == 'recommend':
+            last_products = prediction.products
             output['products'] = prediction.products
             output['action'] = prediction.action
         elif prediction.action == 'add_to_cart':
             output['cart_items'] = prediction.cart_items
             output['action'] = prediction.action
         elif prediction.action == 'more_info':
-            output['product'] = prediction.product
+            output['additional_info'] = prediction.additional_info
             output['action'] = prediction.action
 
         return json.dumps(output , cls=JSONEncoder)

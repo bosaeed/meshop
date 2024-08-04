@@ -1,39 +1,64 @@
 :root {
-	--primary-color: #4a90e2;
-	--secondary-color: #f5a623;
-	--background-color: #f9f9f9;
-	--text-color: #333;
-	--font-family: 'Roboto', sans-serif;
-  }
-  
-  body {
-	font-family: var(--font-family);
-	background-color: var(--background-color);
-	color: var(--text-color);
-	margin: 0;
-	padding: 0;
-	box-sizing: border-box;
-  }
-  
-  a {
-	color: white;
-	text-decoration: none;
-  }
-  
-  a:hover {
-	text-decoration: underline;
-  }
-  
-  button {
-	background-color: var(--primary-color);
-	color: white;
-	border: none;
-	padding: 0.5rem 1rem;
-	font-size: 1rem;
-	cursor: pointer;
-	transition: background-color 0.3s ease;
-  }
-  
-  button:hover {
-	background-color: var(--secondary-color);
-  }
+    --primary-color: #4a90e2; 
+    --secondary-color: #f5a623; 
+    --background-color: #f9f9f9; 
+    --text-color: #333; 
+    --font-family: 'Roboto', sans-serif; 
+    --box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Add a subtle box shadow variable */
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    line-height: 1.6; /* Improve readability */
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s ease; /* Smooth transition for links */
+}
+
+a:hover {
+    color: var(--secondary-color);
+}
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease; /* Add transitions to buttons */
+    border-radius: 4px; /* Rounded corners for buttons */
+    box-shadow: var(--box-shadow); 
+}
+
+button:hover {
+    background-color: var(--secondary-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Increase shadow on hover */
+    transform: translateY(-2px); /* Slight lift on hover */
+}
+
+/* Typography Improvements */
+h1, h2, h3 {
+    font-weight: 500; /* Slightly less bold for headings */
+    line-height: 1.2;
+}
+
+h1 {
+    font-size: 2.5rem;
+}
+
+h2 {
+    font-size: 1.8rem;
+}
+
+p {
+    margin-bottom: 1rem;
+}

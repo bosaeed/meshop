@@ -13,11 +13,15 @@
   let connectionAttempts = 0;
   const MAX_RECONNECT_ATTEMPTS = 50;
   const RECONNECT_INTERVAL = 5000; // 5 seconds
-
+  let billboardMessage = "Hi...";
+  let billboardMessageType = "info"; // "success", "error", "info"
+  let lastIncomingMessage = ''; // To store the last incoming message
+  let showLastIncomingMessage = false; // Toggle visibility of last message
 
   let toasts = [];
 
-  let last_sent_message = ""
+  let last_sent_message = "";
+  let last_message_by_voice = false; // Flag to indicate if the last message was sent by voice
 
   function addToast(message, type = 'info') {
     const id = Date.now() + (Math.random() * 100);
@@ -58,6 +62,7 @@
 
 
     websocket.onmessage = (event) => {
+      handleWebSocketMessage(event)
       const newRecommendations = JSON.parse(event.data);
       console.log('Recommendations:', newRecommendations);
       if('error' in newRecommendations) {
@@ -70,7 +75,12 @@
         console.log('Add to cart:', newRecommendations.cart_items);
       }
       else if( newRecommendations.action.toLowerCase() == 'more_info') {
-        console.log('more_info:', newRecommendations.product);
+        console.log('more_info:', newRecommendations.additional_info);
+        addToBiillboard(newRecommendations.additional_info, 10000, 'info')
+      }
+      else if( newRecommendations.action.toLowerCase() == 'feedback') {
+        console.log('feedback message:', newRecommendations.message);
+        addToBiillboard(newRecommendations.message, 10000, 'info')
       }
       isLoading = false;
     };
@@ -111,6 +121,40 @@
       products = products.filter(p => newProducts.some(np => np.id === p.id));
     }, newProducts.length * delay);
   }
+
+
+  function handleWebSocketMessage(event) {
+    const newRecommendations = JSON.parse(event.data);
+    console.log('Recommendations:', newRecommendations);
+
+    if ('error' in newRecommendations) {
+      console.error('Error:', newRecommendations.error);
+      addToBiillboard(newRecommendations.error, 5000, 'error')
+    } else {
+      // ... (Your existing handling for 'recommend', 'add_to_cart', 'more_info')
+      let message = "data recived successfully"
+      addToBiillboard(message, 5000, 'success')
+
+      // Text-to-Speech for voice messages
+      if (last_message_by_voice) {
+        // speakText(message);
+        last_message_by_voice = false; // Reset the flag
+      }
+    }
+
+    isLoading = false;
+  }
+
+  function addToBiillboard(message,apperTime=5000, type = 'info') {
+    billboardMessageType = type
+    billboardMessage = message
+    lastIncomingMessage = message; // Format nicely
+    showLastIncomingMessage = true;
+    setTimeout(() => { showLastIncomingMessage = false; }, apperTime); // Hide after 5 seconds
+  }
+
+  // websocket.onmessage = handleWebSocketMessage;
+
 
   function debounce(fn, delay) {
     let timeoutID;
@@ -165,12 +209,27 @@ mediaRecorder.addEventListener('dataavailable', async (event) => {
 mediaRecorder.start(250); // send audio every 250ms
   
 }
+console.log(window.speechSynthesis.getVoices());
+
+function speakText(text) {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      console.warn("Speech synthesis not supported in this browser.");
+    }
+  }
 
 
   function startVoiceSearch() {
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+
+    if(isRecording){
+      recognition.stop();
+      isRecording = false;
+    }
     recognition.lang = 'en-US';
-    recognition.continuous = true;
+    recognition.continuous = false;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
@@ -185,10 +244,11 @@ mediaRecorder.start(250); // send audio every 250ms
       console.log('Speech recognition result:', event.results)
       const speechResult = event.results[event.results.length -1][0].transcript;
       console.log('Speech result:', speechResult);
-      sendWebSocketMessage(speechResult)
+      // sendWebSocketMessage(speechResult)
       // websocket.send(JSON.stringify({ user_voice_input: speechResult }));
       searchTerm = speechResult;
       isLoading = true;
+      last_message_by_voice = true;
     };
 
     recognition.onspeechend = () => {
@@ -202,18 +262,20 @@ mediaRecorder.start(250); // send audio every 250ms
     };
 
     recognition.onend = () => {
-      recognition.start();
-      isRecording = false;
+      // recognition.start();
+      // isRecording = false;
     };
   }
-  function getProductSize(score) {
-    if (!score) return 'normal';
-    if (score > 0.8) return 'xl';
-    if (score > 0.6) return 'large';
-    if (score > 0.4) return 'medium';
-    return 'normal';
-  }
+
 </script>
+
+<div class="billboard {billboardMessageType}">
+  {billboardMessage}
+  {#if showLastIncomingMessage}
+    <pre>{lastIncomingMessage}</pre>
+  {/if}
+</div>
+
 
 <div class="container {products.length === 0 ? 'dark-overlay' : ''}">
   <div class="connection-status {isWebSocketConnected ? 'connected' : 'disconnected'}"></div>
@@ -234,24 +296,27 @@ mediaRecorder.start(250); // send audio every 250ms
       {/if}
     </div>
   {:else}
-    <div class="product-list-container">
-      <div class="product-list-container"> 
+
+
+    <div class="product-list-container"> 
         <div class="product-grid"> 
-          {#each products as product (product.id)} 
-          <div animate:flip={{ duration: 300 }}> 
-            <div class="product {getProductSize(product.score)}" class:glow={product.score > 0.6} in:fly={{ y: 50, duration: 300, delay: 300 }} out:fade={{ duration: 300 }} on:click={() => handleCardClick(product.id)}> 
-              <div class="image-container"> 
-                <img src={product.images && product.images.length > 0 ? product.images[0] : '/placeholder.jpeg'} alt={product.name} loading="lazy" /> 
-              </div> <h2>{product.name}</h2> 
-              <p>{truncateDescription(product.description)}</p> 
-              <p class="price">Price: ${product.sale_price}</p> 
-              {#if product.score} <p class="score">Score: {(product.score * 100).toFixed(0)}%</p> {/if} 
+            {#each products as product (product.id)} 
+            <div animate:flip={{ duration: 300 }}> 
+                <div class="product" class:glow={product.score > 0.6} in:fly={{ y: 50, duration: 300, delay: 300 }} out:fade={{ duration: 300 }} on:click={() => handleCardClick(product.id)}> 
+                    <!-- Remove product size classes -->
+                    <div class="image-container"> 
+                        <img src={product.images && product.images.length > 0 ? product.images[0] : '/placeholder.jpeg'} alt={product.name} loading="lazy" /> 
+                    </div> 
+                    <h2>{product.name}</h2> 
+                    <p>{truncateDescription(product.description)}</p> 
+                    <p class="price">Price: ${product.sale_price}</p> 
+                    {#if product.score} <p class="score">Score: {(product.score * 100).toFixed(0)}%</p> {/if} 
+                </div> 
             </div> 
-          </div> 
-          {/each} 
+            {/each} 
         </div> 
-      </div>
     </div>
+
     <div class="search-container bottom">
       <input type="text" bind:value={searchTerm} placeholder="Search products..." />
       <button on:click={startVoiceSearch}>🎤</button>
@@ -314,46 +379,30 @@ mediaRecorder.start(250); // send audio every 250ms
   }
 
   .product {
-    border: 1px solid #ccc;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 100%;
-    background-color: white;
-    border-radius: 8px;
-  }
+        border: 1px solid #e0e0e0; /* Light gray border */
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: var(--box-shadow); /* Apply the box shadow */
+    }
 
-  .product.normal {
-    /* Default size, no changes needed */
-  }
 
-  .product.medium {
-    transform: scale(1.05);
-    z-index: 1;
-  }
 
-  .product.large {
-    transform: scale(1.1);
-    z-index: 2;
-  }
+    .product.glow {
+        box-shadow: 0 4px 8px rgba(0, 255, 0, 0.5);
+    }
 
-  .product.xl {
-    transform: scale(1.15);
-    z-index: 3;
-  }
-
-  .product.glow {
-    box-shadow: 10px 5px 5px  rgba(0, 255, 0, 0.5);
-  }
-
-  .product:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    transform: translateY(-5px);
-  }
+    .product:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transform: translateY(-4px);
+    }
 
   .image-container {
     width: 100%;
@@ -534,5 +583,36 @@ mediaRecorder.start(250); // send audio every 250ms
     to {
       opacity: 1;
     }
+  }
+
+
+
+  .billboard {
+    position: fixed; /* Attach to the top */
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem;
+    background-color: #f0f0f0; /* Light gray default */
+    color: #333;
+    text-align: center;
+    z-index: 100; /* Ensure it's on top */
+    transition: background-color 0.3s ease;
+  }
+
+  .billboard.success {
+    background-color: #4CAF50; /* Green for success */
+    color: white;
+  }
+
+  .billboard.error {
+    background-color: #F44336; /* Red for error */
+    color: white;
+  }
+
+  .billboard pre { /* Style for preformatted JSON message */
+    white-space: pre-wrap;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
   }
 </style>

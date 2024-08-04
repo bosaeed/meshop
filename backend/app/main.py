@@ -4,9 +4,9 @@ from app.routers import products, users, orders
 from app.routers.websocket import handle_connection  # Import the WebSocket handler
 from dotenv import load_dotenv
 import os
-import pyaudio
-import sounddevice as sd
-import numpy as np
+# import pyaudio
+# import sounddevice as sd
+# import numpy as np
 
 
 load_dotenv()
@@ -69,6 +69,6 @@ async def recommendation_websocket(websocket: WebSocket):
 
         data = await websocket.receive_text()
         print(data)
-        output = await handle_connection(data, None)  # Call the new WebSocket handler (adjust as necessary)
+        output = await handle_connection(data, websocket=websocket)  # Call the new WebSocket handler (adjust as necessary)
         if output:
             await websocket.send_text(output)

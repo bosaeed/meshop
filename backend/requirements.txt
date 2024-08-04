@@ -1,0 +1,4 @@
+dspy-ai
+openai
+uvicorn
+fastapi
