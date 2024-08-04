@@ -1,0 +1,185 @@
+{
+  "user_input_to_query": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "user_input": "need nice cloth",
+        "available_categories": "bracelets , women sale , shorts , medium , home & garden , watches , hoodies , bags , music , promotions , shirts , apparel & accessories , accessories , gear , furniture , jackets , collections , clothing , jewelry , large , tanks , small , lighting , eco friendly , 115 , tops , tees , shoes , outdoor , tshirts , men sale , new luma yoga collection , fitness equipment , men , bedding , women , hoodies & sweatshirts , pants , decor , earrings , performance fabrics , bras & tanks , necklaces , bottoms , erin recommends",
+        "rationale": "The user input \"need nice cloth\" is quite vague and does not provide much information about the specific type of clothing the user is looking for. However, we can assume that the user is interested in clothing since they mentioned \"cloth\". We will use the available categories to generate keywords that are relevant to clothing.",
+        "keywords": "clothing, apparel, accessories, jewelry, shoes, bags, tees, tanks, tops, shirts, jackets, pants, shorts, hoodies, sweatshirts, bracelets, watches, necklaces, earrings, decor, bedding, furniture, lighting, eco friendly, performance fabrics, promotions, collections, new luma yoga collection, erin recommends, men sale, women sale"
+      },
+      {
+        "augmented": true,
+        "user_input": "hoodies are perfect",
+        "available_categories": "bracelets , women sale , shorts , medium , home & garden , watches , hoodies , bags , music , promotions , shirts , apparel & accessories , accessories , gear , furniture , jackets , collections , clothing , jewelry , large , tanks , small , lighting , eco friendly , 115 , tops , tees , outdoor , shoes , tshirts , men sale , new luma yoga collection , fitness equipment , men , bedding , women , hoodies & sweatshirts , pants , decor , earrings , bras & tanks , performance fabrics , necklaces , bottoms , erin recommends",
+        "rationale": "The user input \"hoodies are perfect\" indicates that the user is interested in hoodies. Therefore, we can use \"hoodies\" as the keyword for product recommendation.",
+        "keywords": "hoodies"
+      },
+      {
+        "user_input": "add three blue hood",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      }
+    ],
+    "signature_instructions": "Convert user input into a keyword for product recommendation.",
+    "signature_prefix": "Keywords:"
+  },
+  "intent_classifier": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "user_input": "give more info about the black hoodie",
+        "current_products": "black hoodie (ID: 1), green hoodie (ID: 2), blue hoodie (ID: 3)",
+        "rationale": "The user is asking for more information about a specific product, the black hoodie.",
+        "intent": "more_info"
+      },
+      {
+        "user_input": "add three blue hood",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      }
+    ],
+    "signature_instructions": "Classify user intent based on input.",
+    "signature_prefix": "Intent:"
+  },
+  "intent_classifier_start": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "user_input": "need nice cloth",
+        "rationale": "The user is looking for a nice cloth. We can recommend some products based on the user's input.",
+        "intent": "product_recommendation"
+      },
+      {
+        "augmented": true,
+        "user_input": "hoodies are perfect",
+        "rationale": "The user input \"hoodies are perfect\" indicates that the user is expressing a positive sentiment towards hoodies. This suggests that the user may be interested in purchasing hoodies.",
+        "intent": "product_recommendation"
+      },
+      {
+        "user_input": "add three blue hood",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      }
+    ],
+    "signature_instructions": "Classify user intent based on input. new user do not have any products shown in his screen yet",
+    "signature_prefix": "Intent:"
+  },
+  "add_to_cart_extractor": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "user_input": "add three blue hood",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      }
+    ],
+    "signature_instructions": "Extract product IDs and quantities for add to cart intent.",
+    "signature_prefix": "Products With Quantity:"
+  },
+  "ProductInfoExtraction": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "user_input": "give more info about the black hoodie",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ],
+        "rationale": "We need to extract the product ID from the user input.",
+        "product": "1"
+      },
+      {
+        "user_input": "add three blue hood",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      }
+    ],
+    "signature_instructions": "Extract one product ID user need to know more info about.",
+    "signature_prefix": "Product:"
+  }
+}

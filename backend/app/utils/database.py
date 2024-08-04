@@ -1,6 +1,7 @@
 # meshop/backend/app/utils/database.py
 
-from motor.motor_asyncio import AsyncIOMotorClient
+# from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import MongoClient
 from app.utils.embedding import EmbeddingService
 from dotenv import load_dotenv
 import os
@@ -8,7 +9,8 @@ import os
 load_dotenv()
 
 MONGO_URL = os.getenv("MONGO_URL")
-client = AsyncIOMotorClient(MONGO_URL)
+# client = AsyncIOMotorClient(MONGO_URL)
+client = MongoClient(MONGO_URL)
 db = client.meshop
 
 PRODUCT_SEARCH_INDEX = "product_search_index"
@@ -18,11 +20,11 @@ PRODUCTS_VECTOR_FIELD= "embedding"
 
 unique_dict = {}
 
-async def get_collection(collection_name: str):
+def get_collection(collection_name: str):
     return db[collection_name]
 
-async def get_unique(collection_name: str , field_name: str):
-    collection = await get_collection(collection_name)
+def get_unique(collection_name: str , field_name: str):
+    collection = get_collection(collection_name)
 
     # if unique_dict.get(field_name):
     #     return unique_dict.get(field_name)
@@ -34,41 +36,41 @@ async def get_unique(collection_name: str , field_name: str):
     ]
 
     # Execute the aggregation pipeline
-    results = await collection.aggregate(pipeline).to_list(length=None)
+    results = list(collection.aggregate(pipeline))#.to_list(length=None)
     # results = await collection.distinct(field_name)
     unique_dict[field_name] = results
     return results
 
-async def insert_one(collection_name: str, document: dict):
-    collection = await get_collection(collection_name)
-    result = await collection.insert_one(document)
+def insert_one(collection_name: str, document: dict):
+    collection =  get_collection(collection_name)
+    result =  collection.insert_one(document)
     return str(result.inserted_id)
 
-async def find_one(collection_name: str, query: dict , projection: dict = None):
-    collection = await get_collection(collection_name)
-    return await collection.find_one(query,projection)
+def find_one(collection_name: str, query: dict , projection: dict = None):
+    collection =  get_collection(collection_name)
+    return  collection.find_one(query,projection)
 
-async def find_many(collection_name: str, query: dict, projection: dict = None, limit: int = 0):
-    collection = await get_collection(collection_name)
+def find_many(collection_name: str, query: dict, projection: dict = None, limit: int = 0):
+    collection =  get_collection(collection_name)
     cursor = collection.find(query,projection)
     if limit > 0:
         cursor = cursor.limit(limit)
-    return await cursor.to_list(length=None)
+    return  list(cursor)#.to_list(length=None)
 
-async def update_one(collection_name: str, query: dict, update: dict):
-    collection = await get_collection(collection_name)
-    result = await collection.update_one(query, {"$set": update})
+def update_one(collection_name: str, query: dict, update: dict):
+    collection =  get_collection(collection_name)
+    result =  collection.update_one(query, {"$set": update})
     return result.modified_count
 
-async def delete_one(collection_name: str, query: dict):
-    collection = await get_collection(collection_name)
-    result = await collection.delete_one(query)
+def delete_one(collection_name: str, query: dict):
+    collection =  get_collection(collection_name)
+    result =  collection.delete_one(query)
     return result.deleted_count
 
 
 
-async def hybrid_search(collection_name: str, query: str,  limit: int = 20):
-    collection = await get_collection(collection_name)
+def hybrid_search(collection_name: str, query: str,  limit: int = 20):
+    collection =  get_collection(collection_name)
     embedding_service = EmbeddingService()
     vector_query = embedding_service.get_embedding(query)
     
@@ -239,10 +241,10 @@ async def hybrid_search(collection_name: str, query: str,  limit: int = 20):
         {"$limit": limit}
     ]
     
-    return await collection.aggregate(pipeline).to_list(length=None)
+    return list(collection.aggregate(pipeline))#.to_list(length=None)
 
-async def get_autocomplete(collection_name: str,query: str):
-    collection = await get_collection(collection_name)
+def get_autocomplete(collection_name: str,query: str):
+    collection = get_collection(collection_name)
     pipeline = [
         {"$search": 
          {
@@ -261,5 +263,5 @@ async def get_autocomplete(collection_name: str,query: str):
             {"_id": 0, "name": 1}
         }
     ]
-    autocomplete_list = await collection.aggregate(pipeline).to_list(length=None)
+    autocomplete_list = list(collection.aggregate(pipeline))#.to_list(length=None)
     return [item["name"] for item in autocomplete_list]

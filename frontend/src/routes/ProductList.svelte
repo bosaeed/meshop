@@ -123,7 +123,7 @@
   }
 
   function sendWebSocketMessage(message) {
-    if (websocket && websocket.readyState !== WebSocket.CLOSED) {
+    if (websocket && websocket.readyState == WebSocket.OPEN) {
       websocket.send(message);
       console.log('Sent message:', message);
       last_sent_message = searchTerm;
@@ -152,20 +152,41 @@
     navigate(`/product/${productId}`);
   }
 
+
+
+async function startVoiceSearch2() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+mediaRecorder.addEventListener('dataavailable', async (event) => {
+  if (event.data.size > 0 && websocket.readyState === 1) {
+    websocket.send(event.data);
+  }
+});
+mediaRecorder.start(250); // send audio every 250ms
+  
+}
+
+
   function startVoiceSearch() {
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.lang = 'en-US';
+    recognition.continuous = true;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
     recognition.start();
 
+
+
     isRecording = true;
 
     recognition.onresult = (event) => {
-      const speechResult = event.results[0][0].transcript;
+      console.log('Speech recognition event:', event)
+      console.log('Speech recognition result:', event.results)
+      const speechResult = event.results[event.results.length -1][0].transcript;
       console.log('Speech result:', speechResult);
-      websocket.send(JSON.stringify({ user_voice_input: speechResult }));
+      sendWebSocketMessage(speechResult)
+      // websocket.send(JSON.stringify({ user_voice_input: speechResult }));
       searchTerm = speechResult;
       isLoading = true;
     };
@@ -181,6 +202,7 @@
     };
 
     recognition.onend = () => {
+      recognition.start();
       isRecording = false;
     };
   }
@@ -213,7 +235,22 @@
     </div>
   {:else}
     <div class="product-list-container">
-      <!-- ... (existing product list code remains the same) ... -->
+      <div class="product-list-container"> 
+        <div class="product-grid"> 
+          {#each products as product (product.id)} 
+          <div animate:flip={{ duration: 300 }}> 
+            <div class="product {getProductSize(product.score)}" class:glow={product.score > 0.6} in:fly={{ y: 50, duration: 300, delay: 300 }} out:fade={{ duration: 300 }} on:click={() => handleCardClick(product.id)}> 
+              <div class="image-container"> 
+                <img src={product.images && product.images.length > 0 ? product.images[0] : '/placeholder.jpeg'} alt={product.name} loading="lazy" /> 
+              </div> <h2>{product.name}</h2> 
+              <p>{truncateDescription(product.description)}</p> 
+              <p class="price">Price: ${product.sale_price}</p> 
+              {#if product.score} <p class="score">Score: {(product.score * 100).toFixed(0)}%</p> {/if} 
+            </div> 
+          </div> 
+          {/each} 
+        </div> 
+      </div>
     </div>
     <div class="search-container bottom">
       <input type="text" bind:value={searchTerm} placeholder="Search products..." />

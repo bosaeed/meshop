@@ -13,3 +13,6 @@ backend/tests.py
 backend/collected_content.txt
 backend/scripts/tests.py
 .vscode/launch.json
+backend/app/services/langchain_recommendation.py
+backend/app/services/outline_recommendation.py
+backend/scripts/collected_content.txt

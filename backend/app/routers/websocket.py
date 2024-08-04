@@ -2,7 +2,7 @@ import json
 from app.services.recommendation_service import process_user_input
 # from app.services.outline_recommendation import process_user_input
 # from app.services.langchain_recommendation import process_user_input
-from bson import ObjectId
+from bson import ObjectId 
 
 class JSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -21,7 +21,7 @@ async def handle_connection(message, _):
     print(user_input)
     if user_input:
         # prediction = await process_user_input(user_input, last_products )
-        prediction = await process_user_input(user_input, last_products)
+        prediction = process_user_input(user_input, last_products)
         
         output = {}
         if hasattr(prediction, 'error'):

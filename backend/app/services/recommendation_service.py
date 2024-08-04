@@ -1,7 +1,9 @@
 import dspy
 import os
 from app.utils.database import hybrid_search, get_unique
-import aiohttp
+# import aiohttp
+import requests
+
 from typing import List, Dict
 from dspy.primitives.assertions import assert_transform_module, backtrack_handler
 from functools import partial
@@ -27,7 +29,8 @@ BRAVE_API_KEY = os.getenv("BRAVE_API_KEY")
 BRAVE_BASE_URL = os.getenv("BRAVE_BASE_URL")
 LANGTRACE_API_KEY = os.getenv("LANGTRACE_API_KEY" ,None)
 
-avaliable_intents = ['product_recommendation', 'add_to_cart', 'more_info']
+avaliable_intents = ['product_recommendation', 'add_to_cart', 'more_info' , 'unknown_intent']
+avaliable_intents_start = ['product_recommendation', 'unknown_intent']
 
 # Configure DSPy language model
 lm = dspy.OpenAI(api_key=AI71_API_KEY,
@@ -38,10 +41,10 @@ dspy.settings.configure(lm=lm, trace=[],experimental=True)
 
 
 
-if LANGTRACE_API_KEY:
-    from langtrace_python_sdk import langtrace
+# if LANGTRACE_API_KEY:
+#     from langtrace_python_sdk import langtrace
 
-    langtrace.init(api_key = LANGTRACE_API_KEY )
+#     langtrace.init(api_key = LANGTRACE_API_KEY )
 
 
 # Define signatures
@@ -51,12 +54,16 @@ class UserInputToKeywordExtraction(dspy.Signature):
     available_categories = dspy.InputField()
     keywords = dspy.OutputField()
 
+class IntentClassificationStart(dspy.Signature):
+    """Classify user intent based on input. new user do not have any products shown in his screen yet"""
+    user_input = dspy.InputField()
+    intent = dspy.OutputField(desc=f"One of: {" , ".join(avaliable_intents_start)}")
+
 class IntentClassification(dspy.Signature):
     """Classify user intent based on input."""
     user_input = dspy.InputField()
     current_products = dspy.InputField()
     intent = dspy.OutputField(desc=f"One of: {" , ".join(avaliable_intents)}")
-    # target_products = dspy.OutputField(desc="List of product IDs relevant to the intent")
 
 class AddToCartExtraction(dspy.Signature):
     """Extract product IDs and quantities for add to cart intent."""
@@ -79,10 +86,11 @@ class RecommendationSystem(dspy.Module):
         super().__init__()
         self.user_input_to_query = dspy.ChainOfThought(UserInputToKeywordExtraction)
         self.intent_classifier = dspy.ChainOfThought(IntentClassification)
+        self.intent_classifier_start = dspy.ChainOfThought(IntentClassificationStart)
         self.add_to_cart_extractor = dspy.ChainOfThought(AddToCartExtraction)
         self.ProductInfoExtraction = dspy.ChainOfThought(ProductInfoExtraction)
 
-    async def forward(self, user_input: str, current_products: List[Dict]):
+    def forward(self, user_input: str, current_products: List[Dict]):
         # Classify user intent
         print(f"start forward with user input {user_input}")
         if current_products:  # Check if current_products is not empty
@@ -90,28 +98,31 @@ class RecommendationSystem(dspy.Module):
         else:
             current_products_str = "No products shown"
         
+        print(f"current_products_str: {current_products_str}")
         # intent_prediction = self.intent_classifier(user_input=user_input, current_products=current_products_str)
         # print(f"intent_prediction: {intent_prediction}")
         intent = self.classify_intent(user_input, current_products_str)
-
-
 
         
         print(f"Intent: {intent}")
         
 
         if intent == 'product_recommendation':
-            return await self.get_recommendations(user_input)
+            return self.get_recommendations(user_input)
         elif intent == 'add_to_cart':
-            return await self.add_to_cart(user_input, current_products)
+            return self.add_to_cart(user_input, current_products)
         elif intent == 'more_info':
-            return await self.get_more_info(user_input, current_products)
+            return self.get_more_info(user_input, current_products)
         else:
             return dspy.Prediction(error="Unknown intent")
 
     
     def classify_intent(self, user_input, current_products_str):
-        intent_prediction = self.intent_classifier(user_input=user_input, current_products=current_products_str)
+        if current_products_str == "No products shown":
+
+            intent_prediction = self.intent_classifier_start(user_input=user_input)
+        else:
+            intent_prediction = self.intent_classifier(user_input=user_input, current_products=current_products_str)
         intent = intent_prediction.intent.lower()
         dspy.Assert(
             intent in avaliable_intents,
@@ -120,9 +131,9 @@ class RecommendationSystem(dspy.Module):
 
         return intent
     
-    async def get_recommendations(self, user_input):
+    def get_recommendations(self, user_input):
         print("getting recomandations")
-        unique_categories = await get_unique("products", "categories")
+        unique_categories =  get_unique("products", "categories")
         values_set = set()
         for dictionary in unique_categories:
             if "uniqueValue" in dictionary:
@@ -133,23 +144,23 @@ class RecommendationSystem(dspy.Module):
         keywords_prediction = self.user_input_to_query(user_input=user_input, available_categories=merged_uniquevalue)
         keywords = keywords_prediction.keywords
         print(f"keywords: {keywords}")
-        products = await hybrid_search("products", keywords, limit=5)
+        products =  hybrid_search("products", keywords, limit=5)
         print(f"products: {products}")
         return dspy.Prediction(products=products, action="recommend")
 
-    async def add_to_cart(self, user_input, current_products):
+    def add_to_cart(self, user_input, current_products):
         print("add to cart")
         cart_items_prediction = self.add_to_cart_extractor(user_input=user_input, current_products=current_products)
-        cart_items = cart_items_prediction.cart_items
+        cart_items = cart_items_prediction.products_with_quantity
         
         # Ensure each item has a quantity of at least 1
-        for item in cart_items:
-            if 'quantity' not in item or item['quantity'] < 1:
-                item['quantity'] = 1
+        # for item in cart_items:
+        #     if 'quantity' not in item or item['quantity'] < 1:
+        #         item['quantity'] = 1
 
         return dspy.Prediction(cart_items=cart_items, action="add_to_cart")
 
-    async def get_more_info(self, user_input, current_products):
+    def get_more_info(self, user_input, current_products):
         print("more info")
         product = self.ProductInfoExtraction(user_input=user_input, current_products=current_products)
         product = product.product
@@ -159,32 +170,41 @@ class RecommendationSystem(dspy.Module):
 
 
         # Use Brave API to get more information about the product
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                BRAVE_BASE_URL,
-                headers={"X-Subscription-Token": BRAVE_API_KEY},
-                params={"q": product},
-            ) as response:
-                search_results = await response.json()
-        
+        # with aiohttp.ClientSession() as session:
+        #     with session.get(
+        #         BRAVE_BASE_URL,
+        #         headers={"X-Subscription-Token": BRAVE_API_KEY},
+        #         params={"q": product},
+        #     ) as response:
+        #         search_results =  response.json()
+
+        response = requests.get(
+            BRAVE_BASE_URL,
+            headers={"X-Subscription-Token": BRAVE_API_KEY},
+            params={"q": product},
+        )
+        search_results = response.json()
+
+
         # Extract relevant information from search results
         additional_info = search_results['web']['results'][0]['description']
         return dspy.Prediction(product=product, additional_info=additional_info, action="more_info")
 
-async def process_user_input(user_input: str, current_products: List[Dict]):
+def process_user_input(user_input: str, current_products: List[Dict]):
 
-    results = await recommendation_system.forward(user_input=user_input, current_products=current_products)
+    results =  recommendation_system.forward(user_input=user_input, current_products=current_products)
 
     print(lm.inspect_history(2))
     return results
 
 
-YOUR_SAVE_PATH = "recommendation_system.json"
+YOUR_SAVE_PATH = ".\\app\\services\\recomendation_system.json"
 # Instantiate the recommendation system
 
 two_retry = partial(backtrack_handler, max_backtracks=3)
 recommendation_system = RecommendationSystem()
 recommendation_system = assert_transform_module(recommendation_system.map_named_predictors(dspy.Retry) ,two_retry)
+print(os.listdir('.'))
 if os.path.exists(YOUR_SAVE_PATH):
     recommendation_system.load(path=YOUR_SAVE_PATH)
 else:
