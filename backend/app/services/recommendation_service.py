@@ -200,6 +200,7 @@ class RecommendationSystem(dspy.Module):
 
         print(f"search_results: {search_results}")
 
+
         # Extract relevant information from search results
         # Concatenate the first 5 results' descriptions
         additional_info = " ".join(result['description'] for result in search_results['web']['results'][:5])
