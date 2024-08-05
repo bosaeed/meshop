@@ -1,6 +1,6 @@
 dspy-ai
 openai
-uvicorn
+uvicorn[standard]
 fastapi
 requests
 python-dotenv
