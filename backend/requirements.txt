@@ -8,3 +8,4 @@ pymongo
 pydantic
 pydantic[email]
 passlib
+langtrace_python_sdk
