@@ -51,13 +51,13 @@ class UserInputToKeywordExtraction(dspy.Signature):
 class IntentClassificationStart(dspy.Signature):
     """Classify user intent based on input. new user do not have any products shown in his screen yet"""
     user_input = dspy.InputField()
-    intent = dspy.OutputField(desc=f"One of: {" , ".join(avaliable_intents_start)}")
+    intent = dspy.OutputField(desc=f"One of: {' , '.join(avaliable_intents_start)}")
 
 class IntentClassification(dspy.Signature):
     """Classify user intent based on input."""
     user_input = dspy.InputField()
     current_products = dspy.InputField()
-    intent = dspy.OutputField(desc=f"One of: {" , ".join(avaliable_intents)}")
+    intent = dspy.OutputField(desc=f"One of: {' , '.join(avaliable_intents)}")
 
 class AddToCartExtraction(dspy.Signature):
     """Extract product IDs and quantities for add to cart intent."""
@@ -138,7 +138,7 @@ class RecommendationSystem(dspy.Module):
         intent = intent_prediction.intent.lower()
         dspy.Assert(
             intent in avaliable_intents,
-            f"intent should be One of: {" , ".join(avaliable_intents)} nothing more",
+            f"intent should be One of: {' , '.join(avaliable_intents)} nothing more",
         )
 
         return intent
