@@ -6,3 +6,4 @@ requests
 python-dotenv
 pymongo
 pydantic
+pydantic[email]
