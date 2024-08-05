@@ -16,3 +16,4 @@ backend/scripts/tests.py
 backend/app/services/langchain_recommendation.py
 backend/app/services/outline_recommendation.py
 backend/scripts/collected_content.txt
+frontend/src/env.js

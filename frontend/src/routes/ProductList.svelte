@@ -3,6 +3,7 @@
   import { navigate } from "svelte-routing";
   import { fade, fly } from 'svelte/transition';
   import { flip } from 'svelte/animate';
+  import { env } from '../env'
 
   let products = [];
   let searchTerm = "";
@@ -38,7 +39,8 @@
 
 
   function connectWebSocket() {
-    websocket = new WebSocket('ws://localhost:8000/ws');
+// console.log(env.BACKEND_URL)
+    websocket = new WebSocket(env.BACKEND_URL);
 
       websocket.onopen = () => {
       console.log('WebSocket connected');
