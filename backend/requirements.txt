@@ -3,6 +3,6 @@ openai
 uvicorn
 fastapi
 requests
-dotenv
+python-dotenv
 pymongo
 bson
