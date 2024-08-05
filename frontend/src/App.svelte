@@ -4,7 +4,7 @@
 	// import Home from "./routes/Home.svelte";
 	import ProductList from "./routes/ProductList.svelte";
 	import ProductDetail from "./routes/ProductDetail.svelte";
-	import Cart from "./routes/Cart.svelte";
+	// import Cart from "./routes/Cart.svelte";
 	import Header from "./components/Header.svelte";
 	import Footer from "./components/Footer.svelte";
   
@@ -20,7 +20,6 @@
 		<!-- <Route path="/" component={Home} /> -->
 		<Route path="/" component={ProductList} />
 		<Route path="/product/:id" component={ProductDetail} />
-		<Route path="/cart" component={Cart} />
 	  </main>
 	  <Footer />
 	</div>

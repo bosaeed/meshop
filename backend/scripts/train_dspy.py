@@ -13,7 +13,7 @@ from dspy.teleprompt import BootstrapFewShot
 from app.services.recommendation_service import RecommendationSystem
 from dotenv import load_dotenv
 from dspy.primitives.assertions import assert_transform_module, backtrack_handler
-
+import asyncio
 
 load_dotenv()
 
@@ -50,6 +50,13 @@ def recomendation_system_metric(example, pred, trace=None):
     pred =  pred
     print("strart recomendation_system_metric")
     print(example)
+    print(pred)
+    # try:
+    #     loop = asyncio.get_running_loop()
+    # except RuntimeError:
+    #     pred = asyncio.run(pred)
+    # else:
+    #     pred = loop.run_until_complete(pred)
     print(pred)
     i=0
     if pred.get( "products") is not None:

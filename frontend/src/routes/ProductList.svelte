@@ -3,8 +3,9 @@
   import { navigate } from "svelte-routing";
   import { fade, fly } from 'svelte/transition';
   import { flip } from 'svelte/animate';
-  import { env } from '../env'
-
+  import { env , cart} from '../env'
+  import CartSidebar  from '../components/CartSidebar.svelte'; 
+ 
   let products = [];
   let searchTerm = "";
   let websocket;
@@ -23,6 +24,28 @@
 
   let last_sent_message = "";
   let last_message_by_voice = false; // Flag to indicate if the last message was sent by voice
+  let isSidebarOpen = false;
+
+function toggleSidebar() {
+  isSidebarOpen = !isSidebarOpen;
+}
+function openSidebar() {
+    isSidebarOpen = true;
+  }
+
+  function closeSidebar() {
+    isSidebarOpen = false;
+  }
+  function delayedCloseSidebar(delay) {
+    setTimeout(closeSidebar, delay);
+  }
+
+  function addItemToCartAndOpenSidebar(product) {
+    addToCart(product);
+    openSidebar();
+    delayedCloseSidebar(3000); // Keep the sidebar open for 3 seconds
+  }
+
 
   function addToast(message, type = 'info') {
     const id = Date.now() + (Math.random() * 100);
@@ -124,6 +147,18 @@
     }, newProducts.length * delay);
   }
 
+  function addToCart(product) { 
+    // Update the cart store with the new product 
+    cart.update(items => { 
+      const existingItem = items.find(item => item.id === product.id); 
+      if (existingItem) { 
+        existingItem.quantity += 1; 
+        return items; // Return the updated array 
+      } else { 
+        return [...items, { ...product, quantity: 1 }]; 
+      }
+    });
+  }
 
   function handleWebSocketMessage(event) {
     const newRecommendations = JSON.parse(event.data);
@@ -195,7 +230,7 @@
   }
 
   function handleCardClick(productId) {
-    navigate(`/product/${productId}`);
+    // navigate(`/product/${productId}`);
   }
 
 
@@ -300,52 +335,79 @@ function speakText(text) {
   {:else}
 
 
-    <div class="product-list-container"> 
-        <div class="product-grid"> 
-            {#each products as product (product.id)} 
-            <div animate:flip={{ duration: 300 }}> 
-                <div class="product" class:glow={product.score > 0.6} in:fly={{ y: 50, duration: 300, delay: 300 }} out:fade={{ duration: 300 }} on:click={() => handleCardClick(product.id)}> 
-                    <!-- Remove product size classes -->
-                    <div class="image-container"> 
-                        <img src={product.images && product.images.length > 0 ? product.images[0] : '/placeholder.jpeg'} alt={product.name} loading="lazy" /> 
-                    </div> 
-                    <h2>{product.name}</h2> 
-                    <p>{truncateDescription(product.description)}</p> 
-                    <p class="price">Price: ${product.sale_price}</p> 
-                    {#if product.score} <p class="score">Score: {(product.score * 100).toFixed(0)}%</p> {/if} 
-                </div> 
+  <div class="product-list-container"> 
+    <div class="product-grid"> 
+      {#each products as product (product.id)} 
+        <div animate:flip={{ duration: 300 }}> 
+          <div class="product" class:glow={product.score > 0.6} in:fly={{ y: 50, duration: 300, delay: 300 }} out:fade={{ duration: 300 }} on:click={() => handleCardClick(product.id)}> 
+            <div class="image-container"> 
+              <img src={product.images && product.images.length > 0 ? product.images[0] : '/placeholder.jpeg'} alt={product.name} loading="lazy" /> 
             </div> 
-            {/each} 
+            <h2>{product.name}</h2> 
+            <p>{truncateDescription(product.description)}</p> 
+            <p class="price">Price: ${product.sale_price}</p> 
+            <button on:click={() => addItemToCartAndOpenSidebar(product)}>Add to Cart</button> 
+          </div> 
         </div> 
-    </div>
+      {/each} 
+    </div> 
+  </div>
 
-    <div class="search-container bottom">
-      <input type="text" bind:value={searchTerm} placeholder="Search products..." />
-      <button on:click={startVoiceSearch}>🎤</button>
-      <div class="glowing-circle {isWebSocketConnected ? 'connected' : 'disconnected'}"></div>
-      {#if isRecording}
-        <div class="feedback-wave"></div>
-      {/if}
-      {#if isLoading}
-        <div class="loading-animation"></div>
-      {/if}
-    </div>
-  {/if}
+  <div class="search-container bottom">
+    <input type="text" bind:value={searchTerm} placeholder="Search products..." />
+    <button on:click={startVoiceSearch}>🎤</button>
+    <div class="glowing-circle {isWebSocketConnected ? 'connected' : 'disconnected'}"></div>
+    {#if isRecording}
+      <div class="feedback-wave"></div>
+    {/if}
+    {#if isLoading}
+      <div class="loading-animation"></div>
+    {/if}
+  </div>
+{/if}
 </div>
 
+<CartSidebar isOpen={isSidebarOpen} />
+<div class="sidebar-toggle" on:click={toggleSidebar}>
+{#if isSidebarOpen}
+  &times; <!-- Close icon or text -->
+{:else}
+  &#9776; <!-- Open icon or text -->
+{/if}
+</div>
 <div class="toast-container">
-  {#each toasts as toast (toast.id)}
-    <div class="toast {toast.type}" transition:fly="{{ y: 50, duration: 300 }}">
-      {toast.message}
-    </div>
-  {/each}
+{#each toasts as toast (toast.id)}
+  <div class="toast {toast.type}" transition:fly="{{ y: 50, duration: 300 }}">
+    {toast.message}
+  </div>
+{/each}
 </div>
-
 <style>
+   .sidebar-toggle {
+    position: fixed;
+    right: 10px; /* Adjust as needed */
+    top: 10px; /* Adjust as needed */
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px;
+    cursor: pointer;
+    z-index: 1100;
+    border-radius: 8px;
+  }
+  
   .container {
+    padding: 0; 
+    margin: 0;
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    min-height: 60vh;
+  }
+
+  .product-grid-container { /* Add new container for grid + sidebar */
+    display: grid;
+    grid-template-columns: 1fr 250px; /* Adjust sidebar width as needed */
+    gap: 1rem;
+    padding: 1rem;
   }
 
   .dark-overlay {
@@ -357,7 +419,7 @@ function speakText(text) {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    height: 50vh;
     color: white;
   }
 
@@ -369,15 +431,15 @@ function speakText(text) {
 
   .product-list-container {
     flex-grow: 1;
-    padding: 1rem;
-    padding-bottom: 60px;
+    padding: 0.5rem;
+    padding-bottom: 0; 
   }
 
   .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
-    gap: 1rem;
-    padding: 1rem;
+    gap: 0.5rem;
+    padding: 0.5rem;
   }
 
   .product {
@@ -424,12 +486,12 @@ function speakText(text) {
 
   .product h2 {
     margin: 0.5rem 0;
-    font-size: 1.2rem;
+    font-size: 0.7rem;
   }
 
   .product p {
     margin: 0.5rem 0;
-    font-size: 0.9rem;
+    font-size: 0.5rem;
   }
 
   .price {
@@ -473,7 +535,7 @@ function speakText(text) {
     width: 100%;
     max-width: 600px;
     padding: 0.5rem;
-    font-size: 1rem;
+    font-size: 0.8rem;
     border: 1px solid #ccc;
     border-radius: 4px;
   }
@@ -483,7 +545,7 @@ function speakText(text) {
     color: white;
     border: none;
     padding: 0.5rem 1rem;
-    font-size: 1rem;
+    font-size: 0.8rem;
     cursor: pointer;
     transition: background-color 0.3s ease;
     border-radius: 4px;

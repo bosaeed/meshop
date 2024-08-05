@@ -21,7 +21,7 @@ async def handle_connection(message, websocket=None):
     print(user_input)
     if user_input:
         # prediction = await process_user_input(user_input, last_products )
-        prediction = await process_user_input(user_input, last_products ,websocket=websocket)
+        prediction = process_user_input(user_input, last_products ,websocket=websocket)
         
         output = {}
         if hasattr(prediction, 'error'):

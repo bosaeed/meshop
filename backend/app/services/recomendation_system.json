@@ -1,0 +1,286 @@
+{
+  "user_input_to_query": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "user_input": "need nice cloth",
+        "available_categories": "bottoms , music , bedding , hoodies & sweatshirts , tops , bracelets , decor , outdoor , women sale , 115 , new luma yoga collection , performance fabrics , tees , shoes , lighting , men sale , home & garden , bags , fitness equipment , shorts , earrings , apparel & accessories , tshirts , erin recommends , medium , accessories , small , large , tanks , jackets , women , eco friendly , clothing , gear , watches , bras & tanks , hoodies , shirts , jewelry , furniture , necklaces , pants , promotions , men , collections",
+        "rationale": "The user input \"need nice cloth\" is related to the category \"clothing\". We can also assume that the user is looking for a specific type of clothing, such as a shirt or pants, based on the keyword \"nice\".",
+        "keywords": "clothing, shirt, pants, nice"
+      },
+      {
+        "augmented": true,
+        "user_input": "hoodies are perfect",
+        "available_categories": "bottoms , music , hoodies & sweatshirts , bedding , tops , bracelets , decor , outdoor , women sale , 115 , new luma yoga collection , performance fabrics , tees , shoes , lighting , men sale , home & garden , bags , fitness equipment , shorts , earrings , tshirts , apparel & accessories , erin recommends , medium , accessories , small , large , jackets , tanks , women , eco friendly , clothing , gear , watches , bras & tanks , shirts , hoodies , jewelry , furniture , necklaces , pants , promotions , men , collections",
+        "rationale": "The user input \"hoodies are perfect\" indicates that the user is interested in hoodies. Therefore, we can use \"hoodies\" as the keyword for product recommendation.",
+        "keywords": "hoodies"
+      },
+      {
+        "user_input": "add three blue hood",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      },
+      {
+        "user_input": "give more info about the black hoodie",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      }
+    ],
+    "signature_instructions": "Convert user input into a keyword for product recommendation.",
+    "signature_prefix": "Keywords:"
+  },
+  "intent_classifier": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "user_input": "add three blue hood",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      },
+      {
+        "user_input": "give more info about the black hoodie",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      }
+    ],
+    "signature_instructions": "Classify user intent based on input.",
+    "signature_prefix": "Intent:"
+  },
+  "intent_classifier_start": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "user_input": "need nice cloth",
+        "rationale": "The user is looking for a nice cloth. We can recommend some products based on the user's input.",
+        "intent": "product_recommendation"
+      },
+      {
+        "augmented": true,
+        "user_input": "hoodies are perfect",
+        "rationale": "The user input \"hoodies are perfect\" indicates that the user is expressing a positive sentiment towards hoodies. This suggests that the user may be interested in purchasing hoodies.",
+        "intent": "product_recommendation"
+      },
+      {
+        "user_input": "give more info about the black hoodie",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      },
+      {
+        "user_input": "add three blue hood",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      }
+    ],
+    "signature_instructions": "Classify user intent based on input. new user do not have any products shown in his screen yet",
+    "signature_prefix": "Intent:"
+  },
+  "add_to_cart_extractor": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "user_input": "add three blue hood",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      },
+      {
+        "user_input": "give more info about the black hoodie",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      }
+    ],
+    "signature_instructions": "Extract product IDs and quantities for add to cart intent.",
+    "signature_prefix": "Products With Quantity:"
+  },
+  "ProductInfoExtraction": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "user_input": "give more info about the black hoodie",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      },
+      {
+        "user_input": "add three blue hood",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      }
+    ],
+    "signature_instructions": "Extract one product ID user need to know more info about.",
+    "signature_prefix": "Query:"
+  },
+  "SummerizeProductInfo": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "user_input": "give more info about the black hoodie",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      },
+      {
+        "user_input": "add three blue hood",
+        "current_products": [
+          {
+            "_id": 1,
+            "name": "black hoodie"
+          },
+          {
+            "_id": 2,
+            "name": "green hoodie"
+          },
+          {
+            "_id": 3,
+            "name": "blue hoodie"
+          }
+        ]
+      }
+    ],
+    "signature_instructions": "use search results to summerize product info that user need to know more info about.",
+    "signature_prefix": "Summery:"
+  }
+}

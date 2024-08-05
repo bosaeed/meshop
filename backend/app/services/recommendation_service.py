@@ -10,6 +10,8 @@ import logging
 import json
 from fastapi import WebSocket
 import asyncio
+import nest_asyncio
+nest_asyncio.apply()
 
 dspy.logger.level =  logging.INFO
 # Create a console handler
@@ -35,10 +37,10 @@ dspy.settings.configure(lm=lm, trace=[],experimental=True)
 
 gwebsocket = None
 
-if LANGTRACE_API_KEY:
-    from langtrace_python_sdk import langtrace
+# if LANGTRACE_API_KEY:
+#     from langtrace_python_sdk import langtrace
 
-    langtrace.init(api_key = LANGTRACE_API_KEY )
+#     langtrace.init(api_key = LANGTRACE_API_KEY )
 
 
 # Define signatures
@@ -91,12 +93,12 @@ class RecommendationSystem(dspy.Module):
         self.ProductInfoExtraction = dspy.ChainOfThought(ProductInfoExtraction)
         self.SummerizeProductInfo = dspy.ChainOfThought(SummerizeProductInfo)
 
-    async def forward(self, user_input: str, current_products: List[Dict] ):
+    def forward(self, user_input: str, current_products: List[Dict] ):
         # Classify user intent
         global gwebsocket 
         self.websocket = gwebsocket
         print(f"start forward with user input {user_input}")
-        await self.send_feedback("Thinking...")
+        call_async(self.send_feedback("Thinking..."))
         self.id_to_product = {}
         current_products_str = "No products shown"
         if current_products:  # Check if current_products is not empty
@@ -104,7 +106,7 @@ class RecommendationSystem(dspy.Module):
             for idx , p in enumerate(current_products):
                 self.id_to_product[str(idx+1)] = p
                 current_products_str += f"""
-                {{Product_ID: {idx+1}, name: {p['name']}, description: {p['description']}}},
+                {{Product_ID: {idx+1}, name: {p.get('name','')}, description: {p.get('description','')}}},
                 """
 
         
@@ -118,11 +120,11 @@ class RecommendationSystem(dspy.Module):
         
 
         if intent == 'product_recommendation':
-            return await self.get_recommendations(user_input)
+            return self.get_recommendations(user_input)
         elif intent == 'add_to_cart':
-            return await self.add_to_cart(user_input, current_products_str)
+            return self.add_to_cart(user_input, current_products_str)
         elif intent == 'get_more_info':
-            return await self.get_more_info(user_input, current_products_str)
+            return self.get_more_info(user_input, current_products_str)
         else:
             return dspy.Prediction(error="Unknown intent")
 
@@ -143,9 +145,9 @@ class RecommendationSystem(dspy.Module):
 
         return intent
     
-    async def get_recommendations(self, user_input):
+    def get_recommendations(self, user_input):
         print("getting recomandations")
-        await self.send_feedback("Do not worry I'll find the perfect product for you")
+        call_async(self.send_feedback("Do not worry I'll find the perfect product for you"))
         unique_categories =  get_unique("products", "categories")
         values_set = set()
         for dictionary in unique_categories:
@@ -161,9 +163,9 @@ class RecommendationSystem(dspy.Module):
         print(f"products: {products}")
         return dspy.Prediction(products=products, action="recommend")
 
-    async def add_to_cart(self, user_input, current_products):
+    def add_to_cart(self, user_input, current_products):
         print("add to cart")
-        await self.send_feedback("ok ok wil be added")
+        call_async(self.send_feedback("ok ok wil be added"))
         cart_items_prediction = self.add_to_cart_extractor(user_input=user_input, current_products=current_products)
         cart_items = cart_items_prediction.products_with_quantity
         
@@ -174,11 +176,11 @@ class RecommendationSystem(dspy.Module):
 
         return dspy.Prediction(cart_items=cart_items, action="add_to_cart")
 
-    async def get_more_info(self, user_input, current_products):
+    def get_more_info(self, user_input, current_products):
         print("get more info")
-        await self.send_feedback("which one you mean???")
+        call_async(self.send_feedback("which one you mean???"))
         product = self.ProductInfoExtraction(user_input=user_input, current_products=current_products)
-        await self.send_feedback("searching...")
+        call_async(self.send_feedback("searching..."))
         print(product)
         product_id = product.product_id
         query = product.query
@@ -216,11 +218,21 @@ class RecommendationSystem(dspy.Module):
                 "message": message
             }))
             
-
-async def process_user_input(user_input: str, current_products: List[Dict] ,websocket:WebSocket|None = None):
+def call_async(coro):
+    loop = asyncio.get_running_loop()
+    return loop.run_until_complete(coro)
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        print(RuntimeError)
+        return asyncio.run(coro)
+    else:
+        return loop.run_until_complete(coro)
+    
+def process_user_input(user_input: str, current_products: List[Dict] ,websocket:WebSocket|None = None):
     global gwebsocket 
     gwebsocket= websocket
-    results =  await recommendation_system(user_input=user_input, current_products=current_products )
+    results =  recommendation_system(user_input=user_input, current_products=current_products )
 
     # print(lm.inspect_history(3))
     return results
