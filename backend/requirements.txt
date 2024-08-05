@@ -7,3 +7,4 @@ python-dotenv
 pymongo
 pydantic
 pydantic[email]
+passlib
