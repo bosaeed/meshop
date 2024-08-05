@@ -2,3 +2,7 @@ dspy-ai
 openai
 uvicorn
 fastapi
+requests
+dotenv
+pymongo
+bson
