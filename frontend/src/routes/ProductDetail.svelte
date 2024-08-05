@@ -1,6 +1,7 @@
 <!-- meshop/frontend/src/routes/ProductDetail.svelte -->
 <script>
   import { onMount } from "svelte";
+    import { env } from '../env'
   export let id;
 
   let product = null;
@@ -8,7 +9,7 @@
 
   onMount(async () => {
     // Fetch product details from API
-    const response = await fetch(`http://localhost:8000/products/${id}`);
+    const response = await fetch(`${env.BACKEND_URL}/products/${id}`);
     product = await response.json();
     if (product && product.images && product.images.length > 0) {
       selectedImage = product.images[0];

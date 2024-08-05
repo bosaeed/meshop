@@ -39,8 +39,8 @@
 
 
   function connectWebSocket() {
-// console.log(env.BACKEND_URL)
-    websocket = new WebSocket(env.BACKEND_URL);
+ console.log(env.BACKEND_URL)
+    websocket = new WebSocket(env.BACKEND_URL_WS);
 
       websocket.onopen = () => {
       console.log('WebSocket connected');

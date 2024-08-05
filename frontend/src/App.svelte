@@ -9,6 +9,8 @@
 	import Footer from "./components/Footer.svelte";
   
 	export let url = "";
+
+	export const backend = "http://localhost:8000";
   </script>
   
   <Router {url}>
