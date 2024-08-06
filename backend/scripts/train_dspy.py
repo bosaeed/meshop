@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import dspy
 import os
 from dspy.teleprompt import BootstrapFewShot
-from app.services.recommendation_service import RecommendationSystem
+from app.services.recommendation_service import RecommendationSystem , process_user_input
 from dotenv import load_dotenv
 from dspy.primitives.assertions import assert_transform_module, backtrack_handler
 import asyncio
@@ -34,6 +34,20 @@ lm = dspy.OpenAI(api_key=AI71_API_KEY,
                  model_type="text")
 dspy.settings.configure(lm=lm, trace=[],experimental=True)
 
+class DummySender():
+
+    async def send_text(self,messageData ,isText = False):
+        print(messageData)
+
+dummy_sender = DummySender()
+#%%
+process_user_input(user_input="need hoodies",websocket=dummy_sender , user_id="123")
+
+#%%
+process_user_input(user_input="please add two Mens Divi Hoodie to cart and Hoodie - Green",websocket=dummy_sender , user_id="123")
+
+#%%
+process_user_input(user_input="give me more information about Mens Divi Hoodie",websocket=dummy_sender , user_id="123")
 
 #%%
 
@@ -51,21 +65,13 @@ def recomendation_system_metric(example, pred, trace=None):
     print("strart recomendation_system_metric")
     print(example)
     print(pred)
+    user_input, user_id ,action = example.user_input, example.user_id ,pred.action
 
-    i=0
-    if pred.get( "products") is not None:
-        for product in pred.products:
-            product.pop("_id")
-            product.pop("images")
-            product['id'] =i
-            i+=1
-    print(pred)
-    user_input, current_products , output = example.user_input, example.current_products, pred.action
     print(user_input)
-    print(current_products)
-    print(output)
-    correct = f"Does output action `{output}` correctly respond to the user's input `{user_input}` and the current products `{current_products}`?"
-    info_extracted = f"Does output action `{output}` extract all the necessary information from the user's input `{user_input}`?"
+
+
+    correct = f"Does output action `{action}` correctly respond to the user's input `{user_input}`?"
+    info_extracted = f"Does output action `{action}` extract all the necessary information from the user's input `{user_input}`?"
     
     with dspy.context(lm=gpt4llm):
         correct =  dspy.Predict(Assess)( assessment_question=correct)
@@ -80,15 +86,17 @@ def recomendation_system_metric(example, pred, trace=None):
 
 # Prepare training data
 trainset = [
-    dspy.Example( user_input="need nice cloth" , user_id="123").with_inputs("user_input","user_id"),
-    # dspy.Example( user_input="hoodies are perfect" , user_id="123").with_inputs("user_input","user_id"),
-    # dspy.Example( user_input="give more info about the black hoodie" , user_id="123").with_inputs("user_input","user_id"),
-    # dspy.Example( user_input="add three blue hood" ,  user_id="123").with_inputs("user_input","user_id"),
+    dspy.Example( user_input="need nice hoodie" , user_id="10").with_inputs("user_input","user_id"),
+    dspy.Example( user_input="give more information about the first hoodie" , user_id="10").with_inputs("user_input","user_id"),
+    dspy.Example( user_input="add three from first hoodie to cart and also two from product 5" , user_id="10").with_inputs("user_input","user_id"),
+    dspy.Example( user_input="i need do some excersise do you have workout equipment" , user_id="20").with_inputs("user_input","user_id"),
+    dspy.Example( user_input="how to use the third one" , user_id="20").with_inputs("user_input","user_id"),
+    dspy.Example( user_input="add thired one to cart" , user_id="20").with_inputs("user_input","user_id"),
 
 ]
 
 # Optimize the pipeline using BootstrapFewShot
-optimizer = BootstrapFewShot(metric=recomendation_system_metric, max_bootstrapped_demos=4, max_labeled_demos=4)
+optimizer = BootstrapFewShot(metric=recomendation_system_metric, max_bootstrapped_demos=4, max_labeled_demos=4 ,metric_threshold=0.85)
 optimized_recommendation_system = optimizer.compile(recommendation_system, trainset=trainset)
 
 # Replace the original module with the optimized one

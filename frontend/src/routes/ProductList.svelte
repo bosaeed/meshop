@@ -32,7 +32,12 @@
     // Reference to the search input field
     let searchInput;
     let searchInput2;
+    let isSpeakerOn = false; // New variable to track speaker state
 
+function toggleSpeaker() {
+  isSpeakerOn = !isSpeakerOn;
+  addToast(isSpeakerOn ? 'Text-to-speech activated' : 'Text-to-speech deactivated', 'info');
+}
   function toggleSidebar() {
     if(closeTimeout){
       clearTimeout(closeTimeout);
@@ -120,7 +125,15 @@
         updateProducts(newRecommendations.products);
       }
       else if(newRecommendations.action.toLowerCase() == 'add_to_cart' ) {
-        console.log('Add to cart:', newRecommendations.cart_items);
+        
+        newRecommendations.cart_items.forEach((prod ) => {
+          let qty = prod.quintity;
+          delete prod.quintity;
+          addToCart(prod , qty)
+        });
+
+
+        // console.log('Add to cart:', newRecommendations.cart_items);
       }
       else if( newRecommendations.action.toLowerCase() == 'more_info') {
         console.log('more_info:', newRecommendations.additional_info);
@@ -181,14 +194,15 @@
     }
   }
 
-  function addToCart(product) { 
+  function addToCart(product ,qty = 1) { 
+    console.log('Adding to cart:', product, qty)
     cart.update(items => { 
       const existingItem = items.find(item => item.id === product.id); 
       if (existingItem) { 
-        existingItem.quantity += 1; 
+        existingItem.quantity += qty; 
         return items; // Return the updated array 
       } else { 
-        return [...items, { ...product, quantity: 1 }]; 
+        return [...items, { ...product, quantity: qty }]; 
       }
     });
   }
@@ -198,7 +212,7 @@
     billboardMessage = message;
     lastIncomingMessage = message; // Format nicely
     billboardTimeout = apperTime;
-    // speakText(message);
+    speakText(message);
     showLastIncomingMessage = true;
     // if(apperTime > 0) {
     // setTimeout(() => { showLastIncomingMessage = false; }, apperTime); 
@@ -244,13 +258,11 @@
   }
 
 
-  console.log(window.speechSynthesis.getVoices());
-
   function speakText(text) {
-    if ('speechSynthesis' in window) {
+    if (isSpeakerOn && 'speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(text);
       window.speechSynthesis.speak(utterance);
-    } else {
+    } else if (isSpeakerOn) {
       console.warn("Speech synthesis not supported in this browser.");
     }
   }
@@ -264,7 +276,7 @@
     }
     recognition.lang = 'en-US';
     recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
     recognition.start();
@@ -277,12 +289,17 @@
       const speechResult = event.results[event.results.length - 1][0].transcript;
       console.log('Speech result:', speechResult);
       searchTerm = speechResult;
-      isLoading = true;
+      // isLoading = true;
       last_message_by_voice = true;
     };
 
     recognition.onspeechend = () => {
+      console.log('Speech End');
       recognition.stop();
+      // if(searchTerm){
+      //   sendWebSocketMessage(JSON.stringify({ user_input: searchTerm }));
+      //   searchTerm = "";
+      // }
       isRecording = false;
     };
 
@@ -292,17 +309,29 @@
     };
 
     recognition.onend = () => {
-        // Optionally, you can restart the recognition if needed
-        // recognition.start();
+      console.log('on end');      
+      if(searchTerm){
+
+        
+        setTimeout(function() {
+          sendSearchTerm();
+            }, 1000);
+      }  
+      // recognition.start();
         // isRecording = false;
       };
     }
 
     function handleKeyDown(event) {
       if (event.key === "Enter") {
-        sendWebSocketMessage(JSON.stringify({ user_input: searchTerm }));
-        searchTerm = "";
+        sendSearchTerm()
+        
       }
+    }
+
+    function sendSearchTerm(){
+      sendWebSocketMessage(JSON.stringify({ user_input: searchTerm }));
+      searchTerm = "";
     }
 
 </script>
@@ -328,6 +357,13 @@
         {#if isLoading}
           <div class="loading-animation"></div>
         {/if}
+        <button class="speaker-toggle" on:click={toggleSpeaker}>
+          {#if isSpeakerOn}
+            🔊 <!-- Speaker on icon -->
+          {:else}
+            🔇 <!-- Speaker off icon -->
+          {/if}
+        </button>
       </div>
     {:else}
     <div class="product-list-container"> 
@@ -358,8 +394,16 @@
       {#if isLoading}
         <div class="loading-animation"></div>
       {/if}
+      <button class="speaker-toggle" on:click={toggleSpeaker}>
+        {#if isSpeakerOn}
+          🔊 <!-- Speaker on icon -->
+        {:else}
+          🔇 <!-- Speaker off icon -->
+        {/if}
+      </button>
     </div>
   {/if}
+
   </div>
 
   <CartSidebar isOpen={isSidebarOpen} />
@@ -378,6 +422,26 @@
   {/each}
   </div>
   <style>
+
+.speaker-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    transition: background-color 0.3s ease;
+  }
+
+  .speaker-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
     .sidebar-toggle {
       position: fixed;
       right: 10px; /* Adjust as needed */

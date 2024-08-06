@@ -9,6 +9,7 @@ import os
 load_dotenv()
 
 MONGO_URL = os.getenv("MONGO_URL")
+collection_name = os.getenv("COLLECTION_NAME")
 # client = AsyncIOMotorClient(MONGO_URL)
 client = MongoClient(MONGO_URL)
 db = client.meshop

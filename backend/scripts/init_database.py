@@ -15,6 +15,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from typing import List, Dict
 
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
+collection_name = os.getenv("COLLECTION_NAME")
 client = AsyncIOMotorClient(MONGO_URL)
 db = client.meshop
 products_csv = 'products.csv'
@@ -29,7 +30,7 @@ async def insert_products(products: List[Dict]):
     
     for product, lazy_embedding in zip(products, lazy_embeddings):
         product['embedding'] = lazy_embedding
-        product_id = await insert_one("products", product)
+        product_id = await insert_one(collection_name, product)
         print(f"Inserted product: {product['name']} with ID: {product_id}")
 
 async def init_database():

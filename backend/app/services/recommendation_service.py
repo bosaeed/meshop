@@ -3,13 +3,16 @@ import os
 from app.utils.database import hybrid_search, get_unique
 import requests
 
-from typing import List, Dict
+from typing import Any, List, Dict
 from dspy.primitives.assertions import assert_transform_module, backtrack_handler
 from functools import partial
 import logging
 import json
 import asyncio
 import nest_asyncio
+from pydantic import BaseModel,Field, ValidationError
+import re
+import ast
 nest_asyncio.apply()
 
 dspy.logger.level =  logging.INFO
@@ -23,6 +26,8 @@ AI71_MODEL_180 = os.getenv("AI71_MODEL_180")
 BRAVE_API_KEY = os.getenv("BRAVE_API_KEY")
 BRAVE_BASE_URL = os.getenv("BRAVE_BASE_URL")
 LANGTRACE_API_KEY = os.getenv("LANGTRACE_API_KEY" ,None)
+collection_name = os.getenv("COLLECTION_NAME")
+
 
 avaliable_intents = ['product_recommendation', 'add_to_cart', 'get_more_info' , 'unknown_intent']
 avaliable_intents_start = ['product_recommendation', 'unknown_intent']
@@ -44,12 +49,28 @@ gwebsocket = None
 
 #     langtrace.init(api_key = LANGTRACE_API_KEY )
 
+# def is_json(myjson):
+#   try:
+#     json.loads(myjson)
+#   except ValueError as e:
+#     return False
+#   return True
+
+def custom_json_parser(json_data):
+    # Replace single quotes with double quotes
+    json_data = re.sub(r"\'", '"', json_data)
+ 
+    # Use json.loads for parsing
+    parsed_data = json.loads(json_data)
+ 
+    return parsed_data
 
 class UserSession:
     def __init__(self):
         self.current_products = []
         self.cart_items = []
         self.chat_history = []
+        self.id_to_product = {}
 
     def add_to_history(self, **kwargs):
         
@@ -61,58 +82,103 @@ class UserSession:
             output += "\n".join([f"{k}: {v}" for k, v in item.items()])
         return output
     
+    def add_current_products(self, products):
+        self.current_products = []
+        for idx , p in enumerate(products):
+            p["id"] = str(idx+1)
+            self.id_to_product[str(idx+1)] = p
+            self.current_products.append(p)
+
+    def add_to_cart(self, new_cart_products):
+        for p in new_cart_products:
+            p["sale_price"] = p["sale_price"] * p["quantity"]
+            found = False
+            for item in self.cart_items:
+                if item["_id"] == p["_id"]:
+                    item["quantity"] += p["quantity"]
+                    item["sale_price"] += p["sale_price"]
+                    found = True
+                    break
+            if found == False:
+                self.cart_items.append(p)
+            
+    
     def print(self):
         print("current_products:", self.current_products)
         print("cart_items:", self.cart_items)
         print("chat_history:", self.chat_history)
     
+# class ProductQty(BaseModel):
+#     Product_id: int = Field( description="The id of the product")
+#     quintity: int = Field(default="1",description="quintity of the product")
+
+
+# class ProductQtyList(BaseModel):
+#     product_qty_list: list[ProductQty] = Field()
+
+    # @classmethod
+    # def model_validate_json(
+    #     cls, json_data: str, *, strict: bool | None = None, context: dict[str, Any] | None = None
+    # ) -> "list[ProductQty]":
+    #     try:
+    #         __tracebackhide__ = True
+    #         return cls.__pydantic_validator__.validate_json(
+    #             json_data, strict=strict, context=context
+    #         )
+    #     except ValidationError:
+    #         # custom parsing logic here
+    #     raise ValueError("Could not find valid json") from last_exc
+
 
 # Define signatures
 class UserInputToKeywordExtraction(dspy.Signature):
     """Convert user input into a keyword for product recommendation."""
-    user_input = dspy.InputField()
-    available_categories = dspy.InputField()
     chat_history = dspy.InputField()
+    available_categories = dspy.InputField()
+    user_input = dspy.InputField()
     keywords = dspy.OutputField()
     feedback = dspy.OutputField(desc="tell to user brive feedback. limit to 10 words or less.")
 
 class IntentClassificationStart(dspy.Signature):
     """Classify user intent based on input. new user do not have any products shown in his screen yet"""
-    user_input = dspy.InputField()
     chat_history = dspy.InputField()
+    user_input = dspy.InputField()
+    
     intent = dspy.OutputField(desc=f"One of: {' , '.join(avaliable_intents_start)}")
     feedback = dspy.OutputField(desc="tell to user brive feedback. limit to 10 words or less.")
 
 class IntentClassification(dspy.Signature):
     """Classify user intent based on input."""
-    user_input = dspy.InputField()
-    current_products = dspy.InputField()
     chat_history = dspy.InputField()
+
+    current_products = dspy.InputField()
+    user_input = dspy.InputField()
     intent = dspy.OutputField(desc=f"One of: {' , '.join(avaliable_intents)}")
     feedback = dspy.OutputField(desc="tell to user brive feedback. limit to 10 words or less.")
 
 class AddToCartExtraction(dspy.Signature):
     """Extract product IDs and quantities for add to cart intent."""
-    user_input = dspy.InputField()
-    current_products = dspy.InputField()
+
     chat_history = dspy.InputField()
-    products_with_quantity = dspy.OutputField(desc="List of dicts with 'product_id' and 'quantity' if quantity not provided put 1")
+    current_products = dspy.InputField()
+    user_input = dspy.InputField()
+    products_with_quantity :str= dspy.OutputField(desc="List of dicts with 'product_id' and 'quantity' if quantity not provided put 1")
     feedback = dspy.OutputField(desc="tell to user brive feedback. limit to 10 words or less.")
 
 class ProductInfoExtraction(dspy.Signature):
     """Extract one product ID user need to know more info about."""
-    user_input = dspy.InputField()
-    current_products = dspy.InputField()
     chat_history = dspy.InputField()
+    current_products = dspy.InputField()
+    user_input = dspy.InputField()
     product_id = dspy.OutputField(desc="ID of product ")
     query = dspy.OutputField(desc="query to search for searching internet to get more information. write keywords dirctle limit 5 words or less")
     feedback = dspy.OutputField(desc="tell to user brive feedback. limit to 10 words or less.")
 
 class SummerizeProductInfo(dspy.Signature):
     """use search results to summerize product info that user need to know more info about."""
-    user_input = dspy.InputField()
     additional_info = dspy.InputField()
     product = dspy.InputField()
+    user_input = dspy.InputField()
     chat_history = dspy.InputField()
     summery = dspy.OutputField(desc="summery of the product info that user need to know more info about. limit to 100 words or less.")
 
@@ -138,25 +204,25 @@ class RecommendationSystem(dspy.Module):
         session = self.get_or_create_session(user_id)
         print(self.user_sessions)
         session.print()
-        current_products = session.current_products
+        self.current_products = session.current_products
         chat_history = session.get_chat_history()
 
         global gwebsocket 
         self.websocket = gwebsocket
         print(f"start forward with user input {user_input}")
         if self.websocket:call_async(self.send_feedback("wait⏳..."))
-        self.id_to_product = {}
+        self.id_to_product = session.id_to_product
         current_products_str = "No products shown"
-        if current_products:  # Check if current_products is not empty
+        if self.current_products:  # Check if current_products is not empty
             current_products_str = ""
-            for idx , p in enumerate(current_products):
-                self.id_to_product[str(idx+1)] = p
+            for idx , p in enumerate(self.current_products):
+                # self.id_to_product[p['id']] = p
                 current_products_str += f"""
-                {{Product_ID: {idx+1}, name: {p.get('name','')}, description: {p.get('description','')}}},
+                {{Product_ID: {p.get('id','')}, name: {p.get('name','')}, description: {p.get('description','')}}},
                 """
 
         
-        # print(f"current_products_str: {current_products_str}")
+        print(f"current_products_str: {current_products_str}")
         # intent_prediction = self.intent_classifier(user_input=user_input, current_products=current_products_str)
         # print(f"intent_prediction: {intent_prediction}")
         intent ,feedback = self.classify_intent(user_input, current_products_str,chat_history,user_id)
@@ -179,9 +245,10 @@ class RecommendationSystem(dspy.Module):
         session = self.get_or_create_session(user_id)
         session.print()
         if current_products_str == "No products shown":
-
+            print("****** classify start intent")
             intent_prediction = self.intent_classifier_start(user_input=user_input, chat_history=chat_history)
         else:
+            print("****** classify ongoing intent")
             intent_prediction = self.intent_classifier(user_input=user_input, current_products=current_products_str, chat_history=chat_history)
 
         session.add_to_history(user=user_input, assistant=intent_prediction.rationale)
@@ -200,7 +267,7 @@ class RecommendationSystem(dspy.Module):
         session.print()
         print("getting recomandations")
         if self.websocket:call_async(self.send_feedback("Do not worry I'll find the perfect product for you"))
-        unique_categories =  get_unique("products", "categories")
+        unique_categories =  get_unique(collection_name, "categories")
         values_set = set()
         for dictionary in unique_categories:
             if "uniqueValue" in dictionary:
@@ -210,10 +277,12 @@ class RecommendationSystem(dspy.Module):
 
         keywords_prediction = self.user_input_to_query(user_input=user_input, available_categories=merged_uniquevalue, chat_history=chat_history)
         session.add_to_history( assistant=keywords_prediction.rationale)
+        session.current_products
         keywords = keywords_prediction.keywords
         print(f"keywords: {keywords}")
-        products =  hybrid_search("products", keywords, limit=5)
-        # print(f"products: {products}")
+        products =  hybrid_search(collection_name, keywords, limit=5)
+        session.add_current_products(products)
+
         if self.websocket:call_async(self.send_feedback(keywords_prediction.feedback))
         return dspy.Prediction(products=products, action="recommend")
 
@@ -221,36 +290,49 @@ class RecommendationSystem(dspy.Module):
         session = self.get_or_create_session(user_id)
         session.print()
         print("add to cart")
-        if self.websocket:call_async(self.send_feedback("ok ok wil be added"))
+        if self.websocket:call_async(self.send_feedback("ok ok will be added"))
         cart_items_prediction = self.add_to_cart_extractor(user_input=user_input, current_products=current_products, chat_history=chat_history)
         cart_items = cart_items_prediction.products_with_quantity
         session.add_to_history( assistant=cart_items_prediction.rationale)
+        print(cart_items_prediction)
         if self.websocket:call_async(self.send_feedback(cart_items_prediction.feedback))
+
 
         # Gather detailed cart items info
         detailed_cart_items = []
+        try:
+            cart_items = ast.literal_eval(cart_items)
+        except Exception as e:
+            print(e)
+            dspy.Assert(
+                False,
+                f"products_with_quantity should be a list of dicts. avoid {type(e).__name__}:{e} "
+            )
+
+        print(cart_items)
         for item in cart_items:
-            product_id = item["product_id"]
+            product_id = str(item["product_id"])  # Ensure product_id is a string
             quantity = item.get("quantity", 1)
             
             current_product = self.id_to_product.get(product_id)
             if current_product:
                 # Add detailed info to cart item
                 detailed_item = {
+                    "_id": current_product.get("_id", "Unknown Product"),
                     "product_id": product_id,
                     "name": current_product.get("name", "Unknown Product"),
-                    "price": current_product.get("price", "Unknown Price"),
+                    "sale_price": current_product.get("sale_price", "Unknown Price"),
                     "quantity": quantity
                 }
                 detailed_cart_items.append(detailed_item)
-        session.cart_items.extend(detailed_cart_items)
-        return dspy.Prediction(cart_items=detailed_cart_items, action="add_to_cart")
+        session.add_to_cart(detailed_cart_items)
+        return dspy.Prediction(cart_items=detailed_cart_items,current_cart =session.cart_items, action="add_to_cart")
 
     def get_more_info(self, user_input, current_products, chat_history, user_id):
         session = self.get_or_create_session(user_id)
         session.print()
         print("get more info")
-        if self.websocket:call_async(self.send_feedback("which one you mean???"))
+        # if self.websocket:call_async(self.send_feedback("which one you mean???"))
         product = self.ProductInfoExtraction(user_input=user_input, current_products=current_products, chat_history=chat_history)
         session.add_to_history( assistant=product.rationale)
         if self.websocket:call_async(self.send_feedback(product.feedback))
@@ -266,6 +348,15 @@ class RecommendationSystem(dspy.Module):
         # )
         current_product = self.id_to_product.get(product_id)
         print(f"current_product: {current_product}")
+        current_product_str = f"""
+        product name: {current_product['name']}
+        description: {current_product['description']}
+        sale_price: {current_product['sale_price']}
+        categories: {current_product['categories']}
+        vendor: {current_product['vendor']}
+        type: {current_product['type']}
+        tags: {current_product['tags']}
+        """
         response = requests.get(
             BRAVE_BASE_URL,
             headers={"X-Subscription-Token": BRAVE_API_KEY},
@@ -283,7 +374,7 @@ class RecommendationSystem(dspy.Module):
         else:
             additional_info = "no additional information"
 
-        summery = self.SummerizeProductInfo(user_input=user_input,additional_info=additional_info, product=current_product, chat_history=chat_history)
+        summery = self.SummerizeProductInfo(user_input=user_input,additional_info=additional_info, product=current_product_str, chat_history=chat_history)
 
         return dspy.Prediction(product=current_product, additional_info=additional_info ,summery=summery.summery, action="more_info")
     

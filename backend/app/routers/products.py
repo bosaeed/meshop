@@ -5,11 +5,14 @@ from app.utils.database import insert_one, find_many, find_one
 from app.utils.embedding import EmbeddingService
 from bson import ObjectId
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 def get_embedding_text(product: Dict) -> str:
     return f"{product['name']} {product['description']} {' '.join(product['categories'])} {' '.join(product['sizes'])} {' '.join(product['colors'])} {product['vendor']} {product['type']} {' '.join(product['tags'])}"
 
-
+collection_name = os.getenv("COLLECTION_NAME")
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -21,7 +24,7 @@ async def create_product(product: ProductCreate):
     # Get embedding for a product description
     embedding_service = EmbeddingService()
     product_dict["embedding"] = embedding_service.get_embedding(get_embedding_text(product), input_type="query")
-    product_id = await insert_one("products", product_dict)
+    product_id = await insert_one(collection_name, product_dict)
     return {**product_dict, "id": product_id}
 
 
@@ -35,7 +38,7 @@ async def create_products(products: List[ProductCreate]):
     created_products = []
     for product_dict, lazy_embedding in zip(product_dicts, lazy_embeddings):
         product_dict["embedding"] = lazy_embedding.get()
-        product_id = await insert_one("products", product_dict)
+        product_id = await insert_one(collection_name, product_dict)
         created_products.append({**product_dict, "id": product_id})
     
     return created_products
@@ -47,7 +50,7 @@ async def create_products(products: List[ProductCreate]):
 async def get_products():
     limit = 5
     projection = {"embedding": 0}
-    products = await find_many("products", {},projection ,limit=limit)
+    products = await find_many(collection_name, {},projection ,limit=limit)
     print(products)
     return products
 
@@ -56,7 +59,7 @@ async def get_products():
              response_model_by_alias=False,)
 async def get_product(product_id: str):
     projection = {"embedding": 0}
-    product = await find_one("products", {"_id": ObjectId(product_id)},projection)
+    product = await find_one(collection_name, {"_id": ObjectId(product_id)},projection)
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
