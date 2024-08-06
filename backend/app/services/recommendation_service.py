@@ -30,8 +30,8 @@ LANGTRACE_ACTIVATE = os.getenv("LANGTRACE_ACTIVATE" ,True)
 collection_name = os.getenv("COLLECTION_NAME")
 
 
-avaliable_intents = ['product_recommendation', 'add_to_cart', 'get_more_info' , 'unknown_intent']
-avaliable_intents_start = ['product_recommendation', 'unknown_intent']
+avaliable_intents = ['product_recommendation', 'add_to_cart', 'get_more_info' , 'chitchat']
+avaliable_intents_start = ['product_recommendation', 'chitchat']
 
 system_prompt = "You are sales person at meshop, answering customers and knowing what they want and help them."
 
@@ -92,12 +92,12 @@ class UserSession:
 
     def add_to_cart(self, new_cart_products):
         for p in new_cart_products:
-            p["sale_price"] = p["sale_price"] * p["quantity"]
+            p["sale_price"] = float(p["sale_price"]) * int(p["quantity"])
             found = False
             for item in self.cart_items:
                 if item["_id"] == p["_id"]:
-                    item["quantity"] += p["quantity"]
-                    item["sale_price"] += p["sale_price"]
+                    item["quantity"] += int(p["quantity"])
+                    item["sale_price"] += float(p["sale_price"])
                     found = True
                     break
             if found == False:
@@ -163,7 +163,7 @@ class AddToCartExtraction(dspy.Signature):
     chat_history = dspy.InputField()
     current_products = dspy.InputField()
     user_input = dspy.InputField()
-    products_with_quantity :str= dspy.OutputField(desc="List of dicts with match this form [{\"product_id\":5  \"quantity\":2} , ...] if quantity not provided put 1 in this form ")
+    products_with_quantity :str= dspy.OutputField(desc="List of dicts with match this form [{\"product_id\":5 , \"quantity\":2} , ...] if quantity not provided put 1 in this form ")
     feedback = dspy.OutputField(desc="tell to user brive feedback. limit to 10 words or less.")
 
 class ProductInfoExtraction(dspy.Signature):
@@ -211,7 +211,7 @@ class RecommendationSystem(dspy.Module):
         global gwebsocket 
         self.websocket = gwebsocket
         print(f"start forward with user input {user_input}")
-        if self.websocket:call_async(self.send_feedback("wait⏳..."))
+        if self.websocket:call_async(self.send_feedback("wait..."))
         self.id_to_product = session.id_to_product
         current_products_str = "No products shown"
         if self.current_products:  # Check if current_products is not empty
@@ -239,13 +239,15 @@ class RecommendationSystem(dspy.Module):
         elif intent == 'get_more_info':
             return self.get_more_info(user_input, current_products_str, chat_history,user_id)
         else:
-            return dspy.Prediction(error="Unknown intent" , feedback=feedback , action="unknown_intent")
+            return dspy.Prediction( feedback="" , action="chitchat")
 
     
     def classify_intent(self, user_input, current_products_str, chat_history, user_id):
         session = self.get_or_create_session(user_id)
         session.print()
+        is_first_time = False
         if current_products_str == "No products shown":
+            is_first_time = True
             print("****** classify start intent")
             intent_prediction = self.intent_classifier_start(user_input=user_input, chat_history=chat_history)
         else:
@@ -258,7 +260,7 @@ class RecommendationSystem(dspy.Module):
         intent = intent_prediction.intent.lower()
         dspy.Assert(
             intent in avaliable_intents,
-            f"intent should be One of: {' , '.join(avaliable_intents)} nothing more",
+            f"intent should be One of: { ' , '.join(avaliable_intents_start) if(is_first_time) else  ' , '.join(avaliable_intents)} nothing more",
         )
 
         return intent , intent_prediction.feedback
@@ -267,7 +269,7 @@ class RecommendationSystem(dspy.Module):
         session = self.get_or_create_session(user_id)
         session.print()
         print("getting recomandations")
-        if self.websocket:call_async(self.send_feedback("Do not worry I'll find the perfect product for you"))
+        # if self.websocket:call_async(self.send_feedback("Do not worry I'll find the perfect product for you"))
         unique_categories =  get_unique(collection_name, "categories")
         values_set = set()
         for dictionary in unique_categories:
@@ -317,21 +319,24 @@ class RecommendationSystem(dspy.Module):
         
 
         print(cart_items)
+        # print(self.id_to_product)
         for item in cart_items:
             product_id = str(item["product_id"])  # Ensure product_id is a string
             quantity = item.get("quantity", 1)
             
             current_product = self.id_to_product.get(product_id)
+            # print(current_product)
             if current_product:
                 # Add detailed info to cart item
                 detailed_item = {
                     "_id": current_product.get("_id", "Unknown Product"),
                     "product_id": product_id,
                     "name": current_product.get("name", "Unknown Product"),
-                    "sale_price": current_product.get("sale_price", "Unknown Price"),
+                    "sale_price": current_product.get("sale_price", 1.0),
                     "quantity": quantity
                 }
                 detailed_cart_items.append(detailed_item)
+        print(detailed_cart_items)
         session.add_to_cart(detailed_cart_items)
         # if self.websocket:call_async(self.send_feedback(cart_items_prediction.feedback))
         return dspy.Prediction(cart_items=detailed_cart_items,current_cart =session.cart_items, action="add_to_cart" ,feedback=cart_items_prediction.feedback)
@@ -390,7 +395,7 @@ class RecommendationSystem(dspy.Module):
         if self.websocket is not None:
             await self.websocket.send_text(json.dumps({
                 "action":"feedback",
-                "message": message
+                "feedback": message
             }))
             
 def call_async(coro):

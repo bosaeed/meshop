@@ -1,7 +1,7 @@
 <script>
     export let message = "";
     export let type = "info"; // "success", "error", "info"
-    export let show = false;
+    export let show = true;
     export let duration = 0; // Duration in milliseconds before hiding the billboard
 
     let showTimeout= null;
@@ -45,6 +45,11 @@
     .billboard.error {
       background-color: #F44336; /* Red for error */
       color: white;
+    }
+
+    .billboard.info {
+      background-color: #f3e595; /* Gray for info */
+      color: rgb(22, 17, 17);
     }
   
     .billboard pre { /* Style for preformatted JSON message */

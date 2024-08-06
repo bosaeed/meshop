@@ -122,6 +122,8 @@ trainset = [
 
 ]
 
+
+#%%
 # Optimize the pipeline using BootstrapFewShot
 optimizer = BootstrapFewShot(metric=recomendation_system_metric, max_bootstrapped_demos=4, max_labeled_demos=4 ,metric_threshold=0.85)
 optimized_recommendation_system = optimizer.compile(recommendation_system, trainset=trainset)
@@ -132,4 +134,14 @@ optimized_recommendation_system.save(YOUR_SAVE_PATH)
 
 
 
+# %%
+
+
+from dspy.evaluate import Evaluate
+
+# Set up the evaluator, which can be re-used in your code.
+evaluator = Evaluate(devset=trainset, num_threads=1, display_progress=True, display_table=5)
+
+# Launch evaluation.
+evaluator(recommendation_system, metric=recomendation_system_metric)
 # %%

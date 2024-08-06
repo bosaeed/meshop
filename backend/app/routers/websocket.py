@@ -22,11 +22,11 @@ async def handle_connection(message, websocket=None,user_id=" "):
         prediction = process_user_input(user_input ,websocket=websocket,user_id=user_id)
         
         output = {}
-        if hasattr(prediction, 'error'):
-            output['error'] = prediction.error
-            output['feedback'] = prediction.feedback
-        elif prediction.action == 'unknown_intent':
-            output['error'] = "Sorry, I didn't understand that. Could you please rephrase your question or request?"
+        # if hasattr(prediction, 'error'):
+        #     output['error'] = prediction.error
+        #     output['feedback'] = prediction.feedback
+        if prediction.action == 'chitchat':
+            # output['error'] = "Sorry, I didn't understand that. Could you please rephrase your question or request?"
             output['action'] = prediction.action
             output['feedback'] = prediction.feedback
         elif prediction.action == 'recommend':

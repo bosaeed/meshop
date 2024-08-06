@@ -19,9 +19,8 @@
   const RECONNECT_INTERVAL = 5000; // 5 seconds
   let billboardMessage = "Hi...";
   let billboardMessageType = "info"; // "success", "error", "info"
-  let lastIncomingMessage = ''; // To store the last incoming message
   let billboardTimeout = 0;
-  let showLastIncomingMessage = true; // Toggle visibility of last message
+  let showBillboardMessage = true; // Toggle visibility of last message
 
   let toasts = [];
 
@@ -92,7 +91,7 @@ function toggleSpeaker() {
 
     websocket.onopen = () => {
       console.log('WebSocket connected');
-      addToBiillboard("Hi, How can I help you...", 20000, 'info')
+      addToBiillboard("Hi, How can I help you...", 0, 'info')
       isWebSocketConnected = true;
       connectionAttempts = 0;
       addToast('WebSocket connected', 'success');
@@ -102,14 +101,14 @@ function toggleSpeaker() {
       console.log('WebSocket disconnected');
       isWebSocketConnected = false;
       addToast('WebSocket disconnected', 'error');
-      addToBiillboard('WebSocket disconnected', 20000, 'error')
+      addToBiillboard('no connection', 0, 'error')
       retryConnection();
     };
 
     websocket.onerror = (error) => {
       console.error('WebSocket error:', error);
       isWebSocketConnected = false;
-      addToast('WebSocket error', 'error');
+      // addToast('WebSocket error', 'error');
     };
 
     websocket.onmessage = (event) => {
@@ -118,23 +117,22 @@ function toggleSpeaker() {
 
       if('feedback' in newRecommendations){
         console.log('feedback:', newRecommendations['feedback'])
-        addToBiillboard(newRecommendations.feedback, 20000, 'error')
+        if(newRecommendations['feedback']){
+
+          addToBiillboard(newRecommendations.feedback, 20000, 'success')
+        }
       }
 
-      if ('error' in newRecommendations) {
-        console.error('Error:', newRecommendations.error);
-        addToBiillboard(newRecommendations.error, 20000, 'error')
-      } 
      
-      else if( newRecommendations.action.toLowerCase() == 'recommend') {
+      if( newRecommendations.action.toLowerCase() == 'recommend') {
         updateProducts(newRecommendations.products);
       }
       else if(newRecommendations.action.toLowerCase() == 'add_to_cart' ) {
         
         newRecommendations.cart_items.forEach((prod ) => {
-          let qty = prod.quintity;
+          let qty = prod.quantity;
           prod.sale_price = prod.sale_price / qty
-          delete prod.quintity;
+          delete prod.quantity;
           addItemToCartAndOpenSidebar(prod , qty);
         });
 
@@ -145,10 +143,10 @@ function toggleSpeaker() {
         console.log('more_info:', newRecommendations.additional_info);
         addToBiillboard(newRecommendations.additional_info, 20000, 'info')
       }
-      else if( newRecommendations.action.toLowerCase() == 'feedback') {
-        console.log('feedback message:', newRecommendations.message);
-        addToBiillboard(newRecommendations.message, 20000, 'info')
-      }
+      // else if( newRecommendations.action.toLowerCase() == 'feedback') {
+      //   console.log('feedback message:', newRecommendations.message);
+      //   addToBiillboard(newRecommendations.message, 20000, 'info')
+      // }
       isLoading = false;
     };
   }
@@ -213,16 +211,27 @@ function toggleSpeaker() {
     });
   }
 
+  let showTimeoutBillboard;
+
+
+
   function addToBiillboard(message, apperTime = 20000, type = 'info') {
     billboardMessageType = type;
     billboardMessage = message;
-    lastIncomingMessage = message; // Format nicely
-    billboardTimeout = apperTime;
+    // lastIncomingMessage = message; // Format nicely
+    // billboardTimeout = apperTime;
+
+
+    showBillboardMessage = true;
+    
+    if(showTimeoutBillboard){
+      clearTimeout(showTimeoutBillboard)
+    }
+    if(apperTime > 0) {
+      showTimeoutBillboard= setTimeout(() => showBillboardMessage = false, apperTime);
+    }
+    
     speakText(message);
-    showLastIncomingMessage = true;
-    // if(apperTime > 0) {
-    // setTimeout(() => { showLastIncomingMessage = false; }, apperTime); 
-    // }
   }
 
   function debounce(fn, delay) {
@@ -343,8 +352,14 @@ function toggleSpeaker() {
 </script>
 
 
-  <Billboard message={lastIncomingMessage} type={billboardMessageType} show={showLastIncomingMessage} duration={billboardTimeout}/>
+  <!-- <Billboard message={billboardMessage} type={billboardMessageType} show={showBillboardMessage} duration={billboardTimeout}/> -->
 
+  {#if showBillboardMessage}
+    <div class="billboard {billboardMessageType}">
+      <pre>{billboardMessage}</pre>
+    </div>
+  {/if}
+  
 
   <div class="container {products.length === 0 ? 'dark-overlay' : ''}">
     <div class="connection-status {isWebSocketConnected ? 'connected' : 'disconnected'}"></div>
@@ -712,5 +727,38 @@ function toggleSpeaker() {
       }
     }
 
+    .billboard {
+      position: fixed; /* Attach to the top */
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding: 0rem;
+      padding-top: 0.2rem;
+      background-color: #b0ca66; /* Light gray default */
+      color: #333;
+      text-align: center;
+      z-index: 100; /* Ensure it's on top */
+      transition: background-color 0.3s ease;
+    }
+  
+    .billboard.success {
+      background-color: #4CAF50; /* Green for success */
+      color: white;
+    }
+  
+    .billboard.error {
+      background-color: #F44336; /* Red for error */
+      color: white;
+    }
 
+    .billboard.info {
+      background-color: #f3e595; /* Gray for info */
+      color: rgb(22, 17, 17);
+    }
+  
+    .billboard pre { /* Style for preformatted JSON message */
+      white-space: pre-wrap;
+      font-size: 1rem;
+      margin-top: 0rem;
+    }
   </style>
