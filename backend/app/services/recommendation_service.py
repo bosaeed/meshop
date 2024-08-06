@@ -283,8 +283,8 @@ class RecommendationSystem(dspy.Module):
         products =  hybrid_search(collection_name, keywords, limit=5)
         session.add_current_products(products)
 
-        if self.websocket:call_async(self.send_feedback(keywords_prediction.feedback))
-        return dspy.Prediction(products=products, action="recommend")
+        # if self.websocket:call_async(self.send_feedback(keywords_prediction.feedback))
+        return dspy.Prediction(products=products, action="recommend",feedback=keywords_prediction.feedback)
 
     def add_to_cart(self, user_input, current_products, chat_history, user_id):
         session = self.get_or_create_session(user_id)
@@ -295,7 +295,7 @@ class RecommendationSystem(dspy.Module):
         cart_items = cart_items_prediction.products_with_quantity
         session.add_to_history( assistant=cart_items_prediction.rationale)
         print(cart_items_prediction)
-        if self.websocket:call_async(self.send_feedback(cart_items_prediction.feedback))
+        
 
 
         # Gather detailed cart items info
@@ -308,6 +308,12 @@ class RecommendationSystem(dspy.Module):
                 False,
                 f"products_with_quantity should be a list of dicts. avoid {type(e).__name__}:{e} "
             )
+
+        dspy.Assert(
+            isinstance(cart_items, list),
+            "cart_items should be a list"
+        )
+        
 
         print(cart_items)
         for item in cart_items:
@@ -326,7 +332,8 @@ class RecommendationSystem(dspy.Module):
                 }
                 detailed_cart_items.append(detailed_item)
         session.add_to_cart(detailed_cart_items)
-        return dspy.Prediction(cart_items=detailed_cart_items,current_cart =session.cart_items, action="add_to_cart")
+        # if self.websocket:call_async(self.send_feedback(cart_items_prediction.feedback))
+        return dspy.Prediction(cart_items=detailed_cart_items,current_cart =session.cart_items, action="add_to_cart" ,feedback=cart_items_prediction.feedback)
 
     def get_more_info(self, user_input, current_products, chat_history, user_id):
         session = self.get_or_create_session(user_id)
@@ -335,12 +342,12 @@ class RecommendationSystem(dspy.Module):
         # if self.websocket:call_async(self.send_feedback("which one you mean???"))
         product = self.ProductInfoExtraction(user_input=user_input, current_products=current_products, chat_history=chat_history)
         session.add_to_history( assistant=product.rationale)
-        if self.websocket:call_async(self.send_feedback(product.feedback))
+        
         print(product)
         product_id = product.product_id
         query = product.query
         if not product_id :
-            return dspy.Prediction(error="No product specified for more information",feedback=product.feedback ,action="no_product")
+            return dspy.Prediction(error="No product specified for more information",feedback=product.feedback ,action="error")
 
         # dspy.Assert(
         #     self.id_to_product.get(product_id) != None,
@@ -375,8 +382,8 @@ class RecommendationSystem(dspy.Module):
             additional_info = "no additional information"
 
         summery = self.SummerizeProductInfo(user_input=user_input,additional_info=additional_info, product=current_product_str, chat_history=chat_history)
-
-        return dspy.Prediction(product=current_product, additional_info=additional_info ,summery=summery.summery, action="more_info")
+        if self.websocket:call_async(self.send_feedback(product.feedback))
+        return dspy.Prediction(product=current_product, additional_info=additional_info ,summery=summery.summery, action="more_info",feedback=product.feedback)
     
     async def send_feedback(self, message):
         if self.websocket is not None:

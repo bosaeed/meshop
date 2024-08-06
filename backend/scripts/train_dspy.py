@@ -42,13 +42,13 @@ class DummySender():
 
 dummy_sender = DummySender()
 #%%
-process_user_input(user_input="need hoodies",websocket=dummy_sender , user_id="123")
+# process_user_input(user_input="need hoodies",websocket=dummy_sender , user_id="123")
 
 #%%
-process_user_input(user_input="please add two Mens Divi Hoodie to cart and Hoodie - Green",websocket=dummy_sender , user_id="123")
+# process_user_input(user_input="please add two Mens Divi Hoodie to cart and Hoodie - Green",websocket=dummy_sender , user_id="123")
 
 #%%
-process_user_input(user_input="give me more information about Mens Divi Hoodie",websocket=dummy_sender , user_id="123")
+# process_user_input(user_input="give me more information about Mens Divi Hoodie",websocket=dummy_sender , user_id="123")
 
 #%%
 
@@ -66,24 +66,35 @@ def recomendation_system_metric(example, pred, trace=None):
     print("strart recomendation_system_metric")
     print(example)
     print(pred)
-    user_input, user_id ,action = example.user_input, example.user_id ,pred.action
+    user_input, user_id ,action , feedback = example.user_input, example.user_id ,pred.action ,pred.feedback
 
     print(user_input)
 
 
     correct = f"Does output action `{action}` correctly respond to the user's input `{user_input}`?"
-    info_extracted = f"Does output action `{action}` extract all the necessary information from the user's input `{user_input}`?"
+    feedback_correct = f"Does output feedback `{feedback}` correctly respond to the user's input `{user_input}`?"
+
+    if(action == "add_to_cart"):
+        info_extracted = f"Does output action `{action}` extract all the necessary information from the user's input `{user_input}`?"
+    elif(action == "get_product_info"):
+        info_extracted = f"Does output action `{action}` extract the necessary information from the user's input `{user_input}`?"
+    elif(action == "get_recommendations"):
+        info_extracted = f"Does output action `{action}` extract the necessary information from the user's input `{user_input}`?"
+    elif(action == "unknown"):
+        info_extracted = f"Does output action `{action}` correctly respond to the user's input `{user_input}`?"
     
     with dspy.context(lm=gpt4llm):
         correct =  dspy.Predict(Assess)( assessment_question=correct)
+        feedback_correct =  dspy.Predict(Assess)( assessment_question=feedback_correct)
         info_extracted = dspy.Predict(Assess)( assessment_question=info_extracted)
 
     print(correct)
     print(info_extracted)
-    correct, info_extracted = [m.assessment_answer.lower() == 'yes' for m in [correct, info_extracted]]
-    score = (correct + info_extracted) 
+    print(feedback_correct)
+    correct, info_extracted , feedback_correct = [m.assessment_answer.lower() == 'yes' for m in [correct, info_extracted,feedback_correct]]
+    score = (correct + info_extracted ,feedback_correct) 
     # if trace is not None: return score >= 2
-    return score / 2.0
+    return score / 3.0
 
 # Prepare training data
 trainset = [

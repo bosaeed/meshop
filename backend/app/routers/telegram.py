@@ -53,10 +53,11 @@ async def handle_message(update: Update, context):
     prediction = process_user_input(user_input,tsender,user_id=user_id)
     
     output = {}
+    await tsender.send_text(prediction.feedback,True)
     if hasattr(prediction, 'error'):
         output['error'] = prediction.error
     elif prediction.action == 'recommend':
-        await tsender.send_text(f"Here are some recommendations:",True)
+        # await tsender.send_text(f"Here are some recommendations:",True)
 
         media_group = []
         for i, product in enumerate(prediction.products):
@@ -73,6 +74,7 @@ async def handle_message(update: Update, context):
             await tsender.send_text("Sorry, I couldn't find any products to recommend.",True)
 
     elif prediction.action == 'add_to_cart':
+        
         cart_items = "\n".join([f"{item['name']} (x{item['quantity']}) - {item['sale_price']}" for item in prediction.current_cart])
         await tsender.send_text(f"Added to cart:\n{cart_items}",True)
     elif prediction.action == 'more_info':

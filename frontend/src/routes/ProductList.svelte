@@ -65,8 +65,8 @@ function toggleSpeaker() {
     closeTimeout = setTimeout(closeSidebar, delay);
   }
 
-  function addItemToCartAndOpenSidebar(product) {
-    addToCart(product);
+  function addItemToCartAndOpenSidebar(product , qty=1) {
+    addToCart(product,qty);
     openSidebar();
     delayedCloseSidebar(3000); // Keep the sidebar open for 3 seconds
   }
@@ -116,6 +116,11 @@ function toggleSpeaker() {
       const newRecommendations = JSON.parse(event.data);
       console.log('incomming msg:', newRecommendations);
 
+      if('feedback' in newRecommendations){
+        console.log('feedback:', newRecommendations['feedback'])
+        addToBiillboard(newRecommendations.feedback, 20000, 'error')
+      }
+
       if ('error' in newRecommendations) {
         console.error('Error:', newRecommendations.error);
         addToBiillboard(newRecommendations.error, 20000, 'error')
@@ -129,7 +134,7 @@ function toggleSpeaker() {
         newRecommendations.cart_items.forEach((prod ) => {
           let qty = prod.quintity;
           delete prod.quintity;
-          addToCart(prod , qty)
+          addItemToCartAndOpenSidebar(prod , qty);
         });
 
 

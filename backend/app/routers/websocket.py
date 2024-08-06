@@ -24,14 +24,22 @@ async def handle_connection(message, websocket=None,user_id=" "):
         output = {}
         if hasattr(prediction, 'error'):
             output['error'] = prediction.error
+            output['feedback'] = prediction.feedback
+        elif prediction.action == 'unknown_intent':
+            output['error'] = "Sorry, I didn't understand that. Could you please rephrase your question or request?"
+            output['action'] = prediction.action
+            output['feedback'] = prediction.feedback
         elif prediction.action == 'recommend':
             output['products'] = prediction.products
             output['action'] = prediction.action
+            output['feedback'] = prediction.feedback
         elif prediction.action == 'add_to_cart':
             output['cart_items'] = prediction.cart_items
             output['action'] = prediction.action
+            output['feedback'] = prediction.feedback
         elif prediction.action == 'more_info':
             output['additional_info'] = prediction.summery
             output['action'] = prediction.action
+            output['feedback'] = prediction.feedback
 
         return json.dumps(output , cls=JSONEncoder)
