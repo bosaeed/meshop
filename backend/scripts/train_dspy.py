@@ -76,11 +76,11 @@ def recomendation_system_metric(example, pred, trace=None):
 
     if(action == "add_to_cart"):
         info_extracted = f"Does output action `{action}` extract all the necessary information from the user's input `{user_input}`?"
-    elif(action == "get_product_info"):
+    elif(action == "more_info"):
         info_extracted = f"Does output action `{action}` extract the necessary information from the user's input `{user_input}`?"
-    elif(action == "get_recommendations"):
+    elif(action == "recommend"):
         info_extracted = f"Does output action `{action}` extract the necessary information from the user's input `{user_input}`?"
-    elif(action == "unknown"):
+    else:
         info_extracted = f"Does output action `{action}` correctly respond to the user's input `{user_input}`?"
     
     with dspy.context(lm=gpt4llm):
