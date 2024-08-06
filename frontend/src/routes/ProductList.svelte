@@ -1,11 +1,11 @@
 <script>
   import { onMount, onDestroy } from "svelte";
-  import { navigate } from "svelte-routing";
+  // import { navigate } from "svelte-routing";
   import { fade, fly } from 'svelte/transition';
   import { flip } from 'svelte/animate';
   import { env , cart} from '../env'
   import CartSidebar from '../components/CartSidebar.svelte'; 
-  import Billboard from '../components/Billboard.svelte';  // <-- Import Billboard
+  // import Billboard from '../components/Billboard.svelte';  // <-- Import Billboard
 
 
   let products = [];
@@ -19,7 +19,7 @@
   const RECONNECT_INTERVAL = 5000; // 5 seconds
   let billboardMessage = "Hi...";
   let billboardMessageType = "info"; // "success", "error", "info"
-  let billboardTimeout = 0;
+  // let billboardTimeout = 0;
   let showBillboardMessage = true; // Toggle visibility of last message
 
   let toasts = [];
@@ -30,7 +30,6 @@
 
     // Reference to the search input field
     let searchInput;
-    let searchInput2;
     let isSpeakerOn = false; // New variable to track speaker state
 
 function toggleSpeaker() {
@@ -67,7 +66,7 @@ function toggleSpeaker() {
   function addItemToCartAndOpenSidebar(product , qty=1) {
     addToCart(product,qty);
     openSidebar();
-    delayedCloseSidebar(3000); // Keep the sidebar open for 3 seconds
+    delayedCloseSidebar(5000); // Keep the sidebar open for 3 seconds
   }
 
   function addToast(message, type = 'info') {
@@ -164,10 +163,8 @@ function toggleSpeaker() {
   }
 
   onMount(() => {
-    if (searchInput && products.length < 1) {
+    if (searchInput) {
       searchInput.focus();
-    }else if (searchInput2 ) {
-      searchInput2.focus()
     }
     connectWebSocket();
   });
@@ -191,17 +188,15 @@ function toggleSpeaker() {
       products = products.filter(p => newProducts.some(np => np.id === p.id));
     }, newProducts.length * delay);
 
-    if (searchInput && products.length < 1) {
+    if (searchInput ) {
       searchInput.focus();
-    }else if (searchInput2 ) {
-      searchInput2.focus()
     }
   }
 
   function addToCart(product ,qty = 1) { 
     console.log('Adding to cart:', product, qty)
     cart.update(items => { 
-      const existingItem = items.find(item => item.id === product.id); 
+      const existingItem = items.find(item => item._id === product._id); 
       if (existingItem) { 
         existingItem.quantity += qty; 
         return items; // Return the updated array 
@@ -365,48 +360,31 @@ function toggleSpeaker() {
     <div class="connection-status {isWebSocketConnected ? 'connected' : 'disconnected'}"></div>
     
     {#if products.length === 0}
-      <div class="centered-search">
+      <div class="centered-content">
         <h2>Find Your Perfect Product</h2>
-        <div class="search-container large">
-          <input type="text"  bind:this={searchInput}  bind:value={searchTerm} placeholder="Start by typing here..." on:keydown={handleKeyDown} />
-          <button on:click={startVoiceSearch}>🎤</button>
-          <div class="glowing-circle {isWebSocketConnected ? 'connected' : 'disconnected'}"></div>
-        </div>
-        {#if isRecording}
-          <div class="feedback-wave"></div>
-        {/if}
-        {#if isLoading}
-          <div class="loading-animation"></div>
-        {/if}
-        <button class="speaker-toggle" on:click={toggleSpeaker}>
-          {#if isSpeakerOn}
-            🔊 <!-- Speaker on icon -->
-          {:else}
-            🔇 <!-- Speaker off icon -->
-          {/if}
-        </button>
       </div>
     {:else}
-    <div class="product-list-container"> 
-      <div class="product-grid"> 
-        {#each products as product (product.id)} 
-          <div animate:flip={{ duration: 300 }}>
-            <div class="product" class:glow={product.score > 0.6} in:fly={{ y: 50, duration: 300, delay: 300 }} out:fade={{ duration: 300 }} on:click={() => handleCardClick(product.id)}>
-              <div class="image-container">
-                <img src={product.images && product.images.length > 0 ? product.images[0] : '/placeholder.jpeg'} alt={product.name} loading="lazy" />
+      <div class="product-list-container"> 
+        <div class="product-grid"> 
+          {#each products as product (product.id)} 
+            <div animate:flip={{ duration: 300 }}>
+              <div class="product" class:glow={product.score > 0.6} in:fly={{ y: 50, duration: 300, delay: 300 }} out:fade={{ duration: 300 }} on:click={() => handleCardClick(product.id)}>
+                <div class="image-container">
+                  <img src={product.images && product.images.length > 0 ? product.images[0] : '/placeholder.jpeg'} alt={product.name} loading="lazy" />
+                </div>
+                <h2>{product.name}</h2>
+                <p>{truncateDescription(product.description)}</p>
+                <p class="price">Price: ${product.sale_price}</p>
+                <button on:click={() => addItemToCartAndOpenSidebar(product)}>Add to Cart</button>
               </div>
-              <h2>{product.name}</h2>
-              <p>{truncateDescription(product.description)}</p>
-              <p class="price">Price: ${product.sale_price}</p>
-              <button on:click={() => addItemToCartAndOpenSidebar(product)}>Add to Cart</button>
             </div>
-          </div>
-        {/each}
+          {/each}
+        </div>
       </div>
-    </div>
-
-    <div class="search-container bottom">
-      <input type="text"  bind:this={searchInput2}  bind:value={searchTerm} placeholder="Search products..." on:keydown={handleKeyDown} />
+    {/if}
+  
+    <div class="search-container {products.length === 0 ? 'centered' : 'bottom'}">
+      <input type="text" bind:this={searchInput} bind:value={searchTerm} placeholder="Start by typing here..."  on:keydown={handleKeyDown} />
       <button on:click={startVoiceSearch}>🎤</button>
       <div class="glowing-circle {isWebSocketConnected ? 'connected' : 'disconnected'}"></div>
       {#if isRecording}
@@ -423,10 +401,8 @@ function toggleSpeaker() {
         {/if}
       </button>
     </div>
-  {/if}
-
   </div>
-
+  
   <CartSidebar isOpen={isSidebarOpen} />
   <div class="sidebar-toggle" on:click={toggleSidebar}>
   {#if isSidebarOpen}
@@ -442,6 +418,9 @@ function toggleSpeaker() {
     </div>
   {/each}
   </div>
+
+
+
   <style>
 
 .speaker-toggle {
@@ -475,13 +454,15 @@ function toggleSpeaker() {
       border-radius: 8px;
     }
     
-    .container {
-      padding: 0; 
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      min-height: 60vh;
-    }
+  .container {
+    padding: 0; 
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 50vh;
+    position: relative;
+  }
+
 
     .product-grid-container { /* Add new container for grid + sidebar */
       display: grid;
@@ -494,6 +475,8 @@ function toggleSpeaker() {
       background-color: rgba(0, 0, 0, 0.8);
     }
 
+
+    
     .centered-search {
       display: flex;
       flex-direction: column;
@@ -582,32 +565,57 @@ function toggleSpeaker() {
       color: #4CAF50;
     }
 
-    .search-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem;
-    }
+    .centered-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: normal;
+    align-items: center;
+    height: 60vh;
+    color: white;
+  }
 
-    .search-container.large input {
-      font-size: 1.5rem;
-      padding: 1rem;
-    }
+  .centered-content h2 {
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+    text-align: center;
+  }
 
-    .search-container.large button {
-      font-size: 1.5rem;
-      padding: 1rem 1.5rem;
-    }
+  .search-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    transition: all 0.3s ease;
+  }
 
-    .search-container.bottom {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background-color: white;
-      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-    }
+  .search-container.centered {
+    position: absolute;
+    top: 70%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .search-container.bottom {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: white;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .search-container.centered input {
+    font-size: 1.5rem;
+    padding: 1rem;
+  }
+
+  .search-container.centered button {
+    font-size: 1.5rem;
+    padding: 1rem 1.5rem;
+  }
+
+
 
     input {
       width: 100%;
@@ -732,8 +740,8 @@ function toggleSpeaker() {
       top: 0;
       left: 0;
       width: 100%;
-      padding: 0rem;
-      padding-top: 0.2rem;
+      padding: 0.5rem;
+      padding-top: 0.5rem;
       background-color: #b0ca66; /* Light gray default */
       color: #333;
       text-align: center;
@@ -759,6 +767,6 @@ function toggleSpeaker() {
     .billboard pre { /* Style for preformatted JSON message */
       white-space: pre-wrap;
       font-size: 1rem;
-      margin-top: 0rem;
+      margin-top: 0.2rem;
     }
   </style>

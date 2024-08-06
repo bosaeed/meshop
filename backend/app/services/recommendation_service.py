@@ -293,7 +293,7 @@ class RecommendationSystem(dspy.Module):
         session = self.get_or_create_session(user_id)
         session.print()
         print("add to cart")
-        if self.websocket:call_async(self.send_feedback("ok ok will be added"))
+        # if self.websocket:call_async(self.send_feedback("ok ok will be added"))
         cart_items_prediction = self.add_to_cart_extractor(user_input=user_input, current_products=current_products, chat_history=chat_history)
         cart_items = cart_items_prediction.products_with_quantity
         session.add_to_history( assistant=cart_items_prediction.rationale)
@@ -388,7 +388,7 @@ class RecommendationSystem(dspy.Module):
             additional_info = "no additional information"
 
         summery = self.SummerizeProductInfo(user_input=user_input,additional_info=additional_info, product=current_product_str, chat_history=chat_history)
-        if self.websocket:call_async(self.send_feedback(product.feedback))
+        # if self.websocket:call_async(self.send_feedback(product.feedback))
         return dspy.Prediction(product=current_product, additional_info=additional_info ,summery=summery.summery, action="more_info",feedback=product.feedback)
     
     async def send_feedback(self, message):
