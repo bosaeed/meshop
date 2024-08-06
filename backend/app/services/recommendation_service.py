@@ -26,6 +26,7 @@ AI71_MODEL_180 = os.getenv("AI71_MODEL_180")
 BRAVE_API_KEY = os.getenv("BRAVE_API_KEY")
 BRAVE_BASE_URL = os.getenv("BRAVE_BASE_URL")
 LANGTRACE_API_KEY = os.getenv("LANGTRACE_API_KEY" ,None)
+LANGTRACE_ACTIVATE = os.getenv("LANGTRACE_ACTIVATE" ,True)
 collection_name = os.getenv("COLLECTION_NAME")
 
 
@@ -44,10 +45,10 @@ dspy.settings.configure(lm=lm, trace=[],experimental=True)
 
 gwebsocket = None
 
-# if LANGTRACE_API_KEY:
-#     from langtrace_python_sdk import langtrace
+if LANGTRACE_API_KEY and LANGTRACE_ACTIVATE:
+    from langtrace_python_sdk import langtrace
 
-#     langtrace.init(api_key = LANGTRACE_API_KEY )
+    langtrace.init(api_key = LANGTRACE_API_KEY )
 
 # def is_json(myjson):
 #   try:
