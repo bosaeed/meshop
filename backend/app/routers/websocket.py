@@ -31,7 +31,7 @@ async def handle_connection(message, websocket=None,user_id=" "):
             output['cart_items'] = prediction.cart_items
             output['action'] = prediction.action
         elif prediction.action == 'more_info':
-            output['additional_info'] = prediction.additional_info
+            output['additional_info'] = prediction.summery
             output['action'] = prediction.action
 
         return json.dumps(output , cls=JSONEncoder)

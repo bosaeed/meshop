@@ -51,13 +51,7 @@ def recomendation_system_metric(example, pred, trace=None):
     print("strart recomendation_system_metric")
     print(example)
     print(pred)
-    # try:
-    #     loop = asyncio.get_running_loop()
-    # except RuntimeError:
-    #     pred = asyncio.run(pred)
-    # else:
-    #     pred = loop.run_until_complete(pred)
-    print(pred)
+
     i=0
     if pred.get( "products") is not None:
         for product in pred.products:
@@ -86,16 +80,10 @@ def recomendation_system_metric(example, pred, trace=None):
 
 # Prepare training data
 trainset = [
-    dspy.Example( user_input="need nice cloth" , current_products=[]).with_inputs("user_input","current_products"),
-    dspy.Example( user_input="hoodies are perfect" , current_products=[]).with_inputs("user_input","current_products"),
-    dspy.Example( user_input="give more info about the black hoodie" , current_products=[
-        {"_id":1,"name":"black hoodie"},
-        {"_id":2,"name":"green hoodie"},
-        {"_id":3,"name":"blue hoodie"}]).with_inputs("user_input","current_products"),
-    dspy.Example( user_input="add three blue hood" , current_products=[
-        {"_id":1,"name":"black hoodie"},
-        {"_id":2,"name":"green hoodie"},
-        {"_id":3,"name":"blue hoodie"}]).with_inputs("user_input","current_products"),
+    dspy.Example( user_input="need nice cloth" , user_id="123").with_inputs("user_input","user_id"),
+    # dspy.Example( user_input="hoodies are perfect" , user_id="123").with_inputs("user_input","user_id"),
+    # dspy.Example( user_input="give more info about the black hoodie" , user_id="123").with_inputs("user_input","user_id"),
+    # dspy.Example( user_input="add three blue hood" ,  user_id="123").with_inputs("user_input","user_id"),
 
 ]
 

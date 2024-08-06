@@ -75,7 +75,7 @@ async def handle_message(update: Update, context):
         cart_items = "\n".join([f"{item['name']} (x{item['quantity']}) - {item['sale_price']}" for item in prediction.cart_items])
         await tsender.send_text(f"Added to cart:\n{cart_items}",True)
     elif prediction.action == 'more_info':
-        await tsender.send_text(f"Additional info: {prediction.additional_info}",True)
+        await tsender.send_text(f"💬: {prediction.summery}",True)
 
     return json.dumps(output, cls=JSONEncoder)
 

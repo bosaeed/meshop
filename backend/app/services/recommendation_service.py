@@ -144,7 +144,7 @@ class RecommendationSystem(dspy.Module):
         global gwebsocket 
         self.websocket = gwebsocket
         print(f"start forward with user input {user_input}")
-        call_async(self.send_feedback("wait⏳..."))
+        if self.websocket:call_async(self.send_feedback("wait⏳..."))
         self.id_to_product = {}
         current_products_str = "No products shown"
         if current_products:  # Check if current_products is not empty
@@ -159,7 +159,7 @@ class RecommendationSystem(dspy.Module):
         # print(f"current_products_str: {current_products_str}")
         # intent_prediction = self.intent_classifier(user_input=user_input, current_products=current_products_str)
         # print(f"intent_prediction: {intent_prediction}")
-        intent = self.classify_intent(user_input, current_products_str,chat_history,user_id)
+        intent ,feedback = self.classify_intent(user_input, current_products_str,chat_history,user_id)
 
         
         print(f"Intent: {intent}")
@@ -172,7 +172,7 @@ class RecommendationSystem(dspy.Module):
         elif intent == 'get_more_info':
             return self.get_more_info(user_input, current_products_str, chat_history,user_id)
         else:
-            return dspy.Prediction(error="Unknown intent")
+            return dspy.Prediction(error="Unknown intent" , feedback=feedback , action="unknown_intent")
 
     
     def classify_intent(self, user_input, current_products_str, chat_history, user_id):
@@ -186,20 +186,20 @@ class RecommendationSystem(dspy.Module):
 
         session.add_to_history(user=user_input, assistant=intent_prediction.rationale)
         print(f"intent_prediction: {intent_prediction}")
-        call_async(self.send_feedback(intent_prediction.feedback))
+        if self.websocket:call_async(self.send_feedback(intent_prediction.feedback))
         intent = intent_prediction.intent.lower()
         dspy.Assert(
             intent in avaliable_intents,
             f"intent should be One of: {' , '.join(avaliable_intents)} nothing more",
         )
 
-        return intent
+        return intent , intent_prediction.feedback
     
     def get_recommendations(self, user_input, chat_history, user_id):
         session = self.get_or_create_session(user_id)
         session.print()
         print("getting recomandations")
-        call_async(self.send_feedback("Do not worry I'll find the perfect product for you"))
+        if self.websocket:call_async(self.send_feedback("Do not worry I'll find the perfect product for you"))
         unique_categories =  get_unique("products", "categories")
         values_set = set()
         for dictionary in unique_categories:
@@ -214,18 +214,18 @@ class RecommendationSystem(dspy.Module):
         print(f"keywords: {keywords}")
         products =  hybrid_search("products", keywords, limit=5)
         # print(f"products: {products}")
-        call_async(self.send_feedback(keywords_prediction.feedback))
+        if self.websocket:call_async(self.send_feedback(keywords_prediction.feedback))
         return dspy.Prediction(products=products, action="recommend")
 
     def add_to_cart(self, user_input, current_products, chat_history, user_id):
         session = self.get_or_create_session(user_id)
         session.print()
         print("add to cart")
-        call_async(self.send_feedback("ok ok wil be added"))
+        if self.websocket:call_async(self.send_feedback("ok ok wil be added"))
         cart_items_prediction = self.add_to_cart_extractor(user_input=user_input, current_products=current_products, chat_history=chat_history)
         cart_items = cart_items_prediction.products_with_quantity
         session.add_to_history( assistant=cart_items_prediction.rationale)
-        call_async(self.send_feedback(cart_items_prediction.feedback))
+        if self.websocket:call_async(self.send_feedback(cart_items_prediction.feedback))
 
         # Gather detailed cart items info
         detailed_cart_items = []
@@ -250,15 +250,15 @@ class RecommendationSystem(dspy.Module):
         session = self.get_or_create_session(user_id)
         session.print()
         print("get more info")
-        call_async(self.send_feedback("which one you mean???"))
+        if self.websocket:call_async(self.send_feedback("which one you mean???"))
         product = self.ProductInfoExtraction(user_input=user_input, current_products=current_products, chat_history=chat_history)
         session.add_to_history( assistant=product.rationale)
-        call_async(self.send_feedback(product.feedback))
+        if self.websocket:call_async(self.send_feedback(product.feedback))
         print(product)
         product_id = product.product_id
         query = product.query
         if not product_id :
-            return dspy.Prediction(error="No product specified for more information")
+            return dspy.Prediction(error="No product specified for more information",feedback=product.feedback ,action="no_product")
 
         # dspy.Assert(
         #     self.id_to_product.get(product_id) != None,
@@ -285,7 +285,7 @@ class RecommendationSystem(dspy.Module):
 
         summery = self.SummerizeProductInfo(user_input=user_input,additional_info=additional_info, product=current_product, chat_history=chat_history)
 
-        return dspy.Prediction(product=current_product, additional_info=summery.summery, action="more_info")
+        return dspy.Prediction(product=current_product, additional_info=additional_info ,summery=summery.summery, action="more_info")
     
     async def send_feedback(self, message):
         if self.websocket is not None:
