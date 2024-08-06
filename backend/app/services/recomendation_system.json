@@ -6,55 +6,28 @@
     "demos": [
       {
         "augmented": true,
-        "user_input": "need nice cloth",
-        "available_categories": "bottoms , music , bedding , hoodies & sweatshirts , tops , bracelets , decor , outdoor , women sale , 115 , new luma yoga collection , performance fabrics , tees , shoes , lighting , men sale , home & garden , bags , fitness equipment , shorts , earrings , apparel & accessories , tshirts , erin recommends , medium , accessories , small , large , tanks , jackets , women , eco friendly , clothing , gear , watches , bras & tanks , hoodies , shirts , jewelry , furniture , necklaces , pants , promotions , men , collections",
-        "rationale": "The user input \"need nice cloth\" is related to the category \"clothing\". We can also assume that the user is looking for a specific type of clothing, such as a shirt or pants, based on the keyword \"nice\".",
-        "keywords": "clothing, shirt, pants, nice"
+        "user_input": "need a new laptop for work",
+        "available_categories": "accessories , new luma yoga collection , watches , gear , shoes , shirts , earrings , necklaces , large , men sale , promotions , tops , pants , music , women sale , tanks , bras & tanks , jewelry , bracelets , fitness equipment , women , 115 , performance fabrics , collections , clothing , men , tees , hoodies , lighting , home & garden , apparel & accessories , decor , hoodies & sweatshirts , furniture , bags , jackets , small , bedding , medium , erin recommends , tshirts , bottoms , outdoor , shorts , eco friendly",
+        "chat_history": "",
+        "rationale": "The user is looking for a new laptop for work. We can assume that they are interested in laptops that are suitable for work-related tasks such as productivity, multitasking, and possibly even gaming.",
+        "keywords": "laptop, work, productivity, multitasking, gaming",
+        "feedback": "Check out our selection of laptops designed for work and productivity."
       },
       {
-        "augmented": true,
-        "user_input": "hoodies are perfect",
-        "available_categories": "bottoms , music , hoodies & sweatshirts , bedding , tops , bracelets , decor , outdoor , women sale , 115 , new luma yoga collection , performance fabrics , tees , shoes , lighting , men sale , home & garden , bags , fitness equipment , shorts , earrings , tshirts , apparel & accessories , erin recommends , medium , accessories , small , large , jackets , tanks , women , eco friendly , clothing , gear , watches , bras & tanks , shirts , hoodies , jewelry , furniture , necklaces , pants , promotions , men , collections",
-        "rationale": "The user input \"hoodies are perfect\" indicates that the user is interested in hoodies. Therefore, we can use \"hoodies\" as the keyword for product recommendation.",
-        "keywords": "hoodies"
+        "user_input": "need a good book to read",
+        "user_id": "40"
       },
       {
-        "user_input": "add three blue hood",
-        "current_products": [
-          {
-            "_id": 1,
-            "name": "black hoodie"
-          },
-          {
-            "_id": 2,
-            "name": "green hoodie"
-          },
-          {
-            "_id": 3,
-            "name": "blue hoodie"
-          }
-        ]
+        "user_input": "add thired one to cart",
+        "user_id": "20"
       },
       {
-        "user_input": "give more info about the black hoodie",
-        "current_products": [
-          {
-            "_id": 1,
-            "name": "black hoodie"
-          },
-          {
-            "_id": 2,
-            "name": "green hoodie"
-          },
-          {
-            "_id": 3,
-            "name": "blue hoodie"
-          }
-        ]
+        "user_input": "i need do some excersise do you have workout equipment",
+        "user_id": "20"
       }
     ],
     "signature_instructions": "Convert user input into a keyword for product recommendation.",
-    "signature_prefix": "Keywords:"
+    "signature_prefix": "Feedback:"
   },
   "intent_classifier": {
     "lm": null,
@@ -62,42 +35,39 @@
     "train": [],
     "demos": [
       {
-        "user_input": "add three blue hood",
-        "current_products": [
-          {
-            "_id": 1,
-            "name": "black hoodie"
-          },
-          {
-            "_id": 2,
-            "name": "green hoodie"
-          },
-          {
-            "_id": 3,
-            "name": "blue hoodie"
-          }
-        ]
+        "augmented": true,
+        "user_input": "add three from first hoodie to cart and also two from product 5",
+        "current_products": "\n                {Product_ID: 1, name: Hoodie, description: Comfortable everyday hoodie},\n                \n                {Product_ID: 2, name: Mens Divi Hoodie, description: This Divi hoodie is a must have for any Divi fan. It is made from a soft, comfortable, and durable cotton blend. The hoodie is a perfect way to stay warm and show your Divi pride.},\n                \n                {Product_ID: 3, name: Hoodie - Green, No, description: Comfortable everyday hoodie in green},\n                \n                {Product_ID: 4, name: Dat Divi Engine Life Hoodie - Limited Edition, description: This Divi Engine hoodie is a must have for any Divi Engine fan. It is made from a soft, comfortable, and durable cotton blend. The hoodie is a perfect way to stay warm and show your Divi Engine pride.},\n                \n                {Product_ID: 5, name: Hoodie - Red, No, description: Comfortable everyday hoodie in red},\n                ",
+        "chat_history": "user: need nice hoodie\nassistant: The user is looking for a nice hoodie. We can recommend a product based on this input.assistant: The user is looking for a nice hoodie. We can use this as a keyword to recommend products from the available categories.user: give more information about the first hoodie\nassistant: The user has requested more information about the first hoodie. We can provide the name and description of the product.assistant: The user has requested more information about the first hoodie. We can use the product ID to extract the necessary details and provide a brief description of the product.",
+        "rationale": "The user wants to add three of the first hoodie and two of product 5 to their cart. This indicates an intent to purchase these items.",
+        "intent": "add_to_cart",
+        "feedback": "\"Sure, I can add those items to your cart.\""
       },
       {
-        "user_input": "give more info about the black hoodie",
-        "current_products": [
-          {
-            "_id": 1,
-            "name": "black hoodie"
-          },
-          {
-            "_id": 2,
-            "name": "green hoodie"
-          },
-          {
-            "_id": 3,
-            "name": "blue hoodie"
-          }
-        ]
+        "augmented": true,
+        "user_input": "add two copies of the bestseller to my cart",
+        "current_products": "\n                {Product_ID: 1, name: Endeavor Daytrip Backpack, description: With more room than it appears, the Endeavor Daytrip Backpack will hold a whole day's worth of books, binders and gym clothes. The spacious main compartment includes a dedicated laptop sleeve. Two other compartments offer extra storage space. Foam-padded adjustable shoulder straps. 900D polyester. Oversized zippers. Locker loop. },\n                \n                {Product_ID: 2, name: Hoodie - Red, No, description: Comfortable everyday hoodie in red},\n                \n                {Product_ID: 3, name: V-Neck T-Shirt - Red, description: Classic v-neck t-shirt in red},\n                \n                {Product_ID: 4, name: Hoodie - Blue, Yes, description: Comfortable everyday hoodie in blue with logo},\n                \n                {Product_ID: 5, name: Hoodie - Blue, No, description: Comfortable everyday hoodie in blue},\n                ",
+        "chat_history": "user: need a good book to read\nassistant: The user is looking for a book to read. We can recommend a popular book.assistant: The user is looking for a book to read, which falls under the category of \"accessories\". We can recommend a book based on the user's input.user: tell me more about the author of the third book\nassistant: The user is asking for more information about the author of the third book. We can provide a brief bio of the author.assistant: The user is interested in knowing more about the author of the third book. We can search for information about the author online.",
+        "rationale": "The user wants to add two copies of the bestseller to their cart. This indicates that the user has already decided on a product and is ready to make a purchase.",
+        "intent": "add_to_cart",
+        "feedback": "\"Sure, I can add two copies of the bestseller to your cart. What's the name of the book?\""
+      },
+      {
+        "augmented": true,
+        "user_input": "add size 10 of the third pair to cart",
+        "current_products": "\n                {Product_ID: 1, name: Angel Light Running Short, description: The Angel Light Running Short offers comfort in an ultra-lightweight, breathable package. With fabric infused with all-natural Cocona\u0622\u00ae performance technology, it can whisk away sweat and block UV rays.  Dark heather gray running shorts. Snug fit.  Elastic waistband.  Cocona\u0622\u00ae performance fabric.  Machine wash\/dry.},\n                \n                {Product_ID: 2, name: Ingrid Running Jacket, description: The Ingrid Running Jacket combines sleek design and high performance with slim, contoured fit and moisture-wicking fabric. It features a full-zip construction and a collared neck to keep the elements out and body heat in.  Slim fit.  Moisture-wicking fabric.  Two side pockets.  Zippered pocket at back waist.  Machine wash\/dry. Ivory specked full zip},\n                \n                {Product_ID: 3, name: Artemis Running Short, description: Discover smooth jogging and chic comfort each time you slip into the Artemis Running Short. A unique maritime-inspired design and color theme features a stretchy drawstring waist.  Black rouched shorts with mint waist.  Soft, lightweight construction. LumaTech wicking technology. Semi-fitted.},\n                \n                {Product_ID: 4, name: Sybil Running Short, description: Fortunately, it's okay to look cute while you're working out. The Sybil Running Short combines a fun, color-blocked design with breathable mesh fabric for sporty-fun style.  Blue running shorts with green waist. Drawstring-adjustable waist. 4\" inseam. Machine wash\/line dry.},\n                \n                {Product_ID: 5, name: Apollo Running Short, description: Fleet of foot or slow and steady, you'll be in complete comfort with the Apollo Running Short. Lightweight polyester material lets you move with ease, and mesh side panels promise plenty of ventilation as you work up a sweat. The stretchy elastic waistband delivers a flexible fit.  Black shorts with green accents. Side pockets.  4\" inseam.  Machine wash\/dry.},\n                ",
+        "chat_history": "user: looking for running shoes\nassistant: The user is looking for running shoes. We can recommend some popular running shoes based on user preferences.assistant: The user is looking for running shoes, so we need to convert this input into a keyword that can be used for product recommendation. We can use the category \"shoes\" as a starting point and narrow it down further by adding the subcategory \"running\".user: what sizes are available for the second pair?\nassistant: The user is asking about the availability of sizes for the second pair of running shoes. We need to check the current products list and find the product with the corresponding product ID. Then, we can look for the available sizes and provide that information to the user.assistant: The user is asking about the availability of sizes for the second pair of running shoes. We need to extract the product ID of the second pair of running shoes from the current products list and use it to search for more information about the available sizes.",
+        "rationale": "The user wants to add a specific size of a product to their cart. We need to identify the product ID and size from the user input, and then add it to the cart.",
+        "intent": "add_to_cart",
+        "feedback": "\"Size 10 of the third pair has been added to your cart.\""
+      },
+      {
+        "user_input": "add thired one to cart",
+        "user_id": "20"
       }
     ],
     "signature_instructions": "Classify user intent based on input.",
-    "signature_prefix": "Intent:"
+    "signature_prefix": "Feedback:"
   },
   "intent_classifier_start": {
     "lm": null,
@@ -106,53 +76,19 @@
     "demos": [
       {
         "augmented": true,
-        "user_input": "need nice cloth",
-        "rationale": "The user is looking for a nice cloth. We can recommend some products based on the user's input.",
-        "intent": "product_recommendation"
+        "user_input": "need a new laptop for work",
+        "chat_history": "",
+        "rationale": "The user has expressed a need for a new laptop for work. We can assume that they are looking for a product recommendation.",
+        "intent": "product_recommendation",
+        "feedback": "\"We recommend checking out our laptops for work.\""
       },
       {
-        "augmented": true,
-        "user_input": "hoodies are perfect",
-        "rationale": "The user input \"hoodies are perfect\" indicates that the user is expressing a positive sentiment towards hoodies. This suggests that the user may be interested in purchasing hoodies.",
-        "intent": "product_recommendation"
-      },
-      {
-        "user_input": "give more info about the black hoodie",
-        "current_products": [
-          {
-            "_id": 1,
-            "name": "black hoodie"
-          },
-          {
-            "_id": 2,
-            "name": "green hoodie"
-          },
-          {
-            "_id": 3,
-            "name": "blue hoodie"
-          }
-        ]
-      },
-      {
-        "user_input": "add three blue hood",
-        "current_products": [
-          {
-            "_id": 1,
-            "name": "black hoodie"
-          },
-          {
-            "_id": 2,
-            "name": "green hoodie"
-          },
-          {
-            "_id": 3,
-            "name": "blue hoodie"
-          }
-        ]
+        "user_input": "add thired one to cart",
+        "user_id": "20"
       }
     ],
     "signature_instructions": "Classify user intent based on input. new user do not have any products shown in his screen yet",
-    "signature_prefix": "Intent:"
+    "signature_prefix": "Feedback:"
   },
   "add_to_cart_extractor": {
     "lm": null,
@@ -160,42 +96,39 @@
     "train": [],
     "demos": [
       {
-        "user_input": "add three blue hood",
-        "current_products": [
-          {
-            "_id": 1,
-            "name": "black hoodie"
-          },
-          {
-            "_id": 2,
-            "name": "green hoodie"
-          },
-          {
-            "_id": 3,
-            "name": "blue hoodie"
-          }
-        ]
+        "augmented": true,
+        "user_input": "add three from first hoodie to cart and also two from product 5",
+        "current_products": "\n                {Product_ID: 1, name: Hoodie, description: Comfortable everyday hoodie},\n                \n                {Product_ID: 2, name: Mens Divi Hoodie, description: This Divi hoodie is a must have for any Divi fan. It is made from a soft, comfortable, and durable cotton blend. The hoodie is a perfect way to stay warm and show your Divi pride.},\n                \n                {Product_ID: 3, name: Hoodie - Green, No, description: Comfortable everyday hoodie in green},\n                \n                {Product_ID: 4, name: Dat Divi Engine Life Hoodie - Limited Edition, description: This Divi Engine hoodie is a must have for any Divi Engine fan. It is made from a soft, comfortable, and durable cotton blend. The hoodie is a perfect way to stay warm and show your Divi Engine pride.},\n                \n                {Product_ID: 5, name: Hoodie - Red, No, description: Comfortable everyday hoodie in red},\n                ",
+        "chat_history": "user: need nice hoodie\nassistant: The user is looking for a nice hoodie. We can recommend a product based on this input.assistant: The user is looking for a nice hoodie. We can use this as a keyword to recommend products from the available categories.user: give more information about the first hoodie\nassistant: The user has requested more information about the first hoodie. We can provide the name and description of the product.assistant: The user has requested more information about the first hoodie. We can use the product ID to extract the necessary details and provide a brief description of the product.",
+        "rationale": "The user wants to add three of the first hoodie and two of product 5 to their cart. We need to extract the product IDs and quantities for these items.",
+        "products_with_quantity": "[{\"product_id\": 1, \"quantity\": 3}, {\"product_id\": 5, \"quantity\": 2}]",
+        "feedback": "\"Added 3 of the first hoodie and 2 of product 5 to your cart.\""
       },
       {
-        "user_input": "give more info about the black hoodie",
-        "current_products": [
-          {
-            "_id": 1,
-            "name": "black hoodie"
-          },
-          {
-            "_id": 2,
-            "name": "green hoodie"
-          },
-          {
-            "_id": 3,
-            "name": "blue hoodie"
-          }
-        ]
+        "augmented": true,
+        "user_input": "add two copies of the bestseller to my cart",
+        "current_products": "\n                {Product_ID: 1, name: Endeavor Daytrip Backpack, description: With more room than it appears, the Endeavor Daytrip Backpack will hold a whole day's worth of books, binders and gym clothes. The spacious main compartment includes a dedicated laptop sleeve. Two other compartments offer extra storage space. Foam-padded adjustable shoulder straps. 900D polyester. Oversized zippers. Locker loop. },\n                \n                {Product_ID: 2, name: Hoodie - Red, No, description: Comfortable everyday hoodie in red},\n                \n                {Product_ID: 3, name: V-Neck T-Shirt - Red, description: Classic v-neck t-shirt in red},\n                \n                {Product_ID: 4, name: Hoodie - Blue, Yes, description: Comfortable everyday hoodie in blue with logo},\n                \n                {Product_ID: 5, name: Hoodie - Blue, No, description: Comfortable everyday hoodie in blue},\n                ",
+        "chat_history": "user: need a good book to read\nassistant: The user is looking for a book to read. We can recommend a popular book.assistant: The user is looking for a book to read, which falls under the category of \"accessories\". We can recommend a book based on the user's input.user: tell me more about the author of the third book\nassistant: The user is asking for more information about the author of the third book. We can provide a brief bio of the author.assistant: The user is interested in knowing more about the author of the third book. We can search for information about the author online.",
+        "rationale": "The user wants to add the bestseller to their cart. We need to extract the product ID and quantity from the user's input.",
+        "products_with_quantity": "[{\"product_id\": 1, \"quantity\": 2}]",
+        "feedback": "\"Two copies of the bestseller added to your cart.\""
+      },
+      {
+        "augmented": true,
+        "user_input": "add size 10 of the third pair to cart",
+        "current_products": "\n                {Product_ID: 1, name: Angel Light Running Short, description: The Angel Light Running Short offers comfort in an ultra-lightweight, breathable package. With fabric infused with all-natural Cocona\u0622\u00ae performance technology, it can whisk away sweat and block UV rays.  Dark heather gray running shorts. Snug fit.  Elastic waistband.  Cocona\u0622\u00ae performance fabric.  Machine wash\/dry.},\n                \n                {Product_ID: 2, name: Ingrid Running Jacket, description: The Ingrid Running Jacket combines sleek design and high performance with slim, contoured fit and moisture-wicking fabric. It features a full-zip construction and a collared neck to keep the elements out and body heat in.  Slim fit.  Moisture-wicking fabric.  Two side pockets.  Zippered pocket at back waist.  Machine wash\/dry. Ivory specked full zip},\n                \n                {Product_ID: 3, name: Artemis Running Short, description: Discover smooth jogging and chic comfort each time you slip into the Artemis Running Short. A unique maritime-inspired design and color theme features a stretchy drawstring waist.  Black rouched shorts with mint waist.  Soft, lightweight construction. LumaTech wicking technology. Semi-fitted.},\n                \n                {Product_ID: 4, name: Sybil Running Short, description: Fortunately, it's okay to look cute while you're working out. The Sybil Running Short combines a fun, color-blocked design with breathable mesh fabric for sporty-fun style.  Blue running shorts with green waist. Drawstring-adjustable waist. 4\" inseam. Machine wash\/line dry.},\n                \n                {Product_ID: 5, name: Apollo Running Short, description: Fleet of foot or slow and steady, you'll be in complete comfort with the Apollo Running Short. Lightweight polyester material lets you move with ease, and mesh side panels promise plenty of ventilation as you work up a sweat. The stretchy elastic waistband delivers a flexible fit.  Black shorts with green accents. Side pockets.  4\" inseam.  Machine wash\/dry.},\n                ",
+        "chat_history": "user: looking for running shoes\nassistant: The user is looking for running shoes. We can recommend some popular running shoes based on user preferences.assistant: The user is looking for running shoes, so we need to convert this input into a keyword that can be used for product recommendation. We can use the category \"shoes\" as a starting point and narrow it down further by adding the subcategory \"running\".user: what sizes are available for the second pair?\nassistant: The user is asking about the availability of sizes for the second pair of running shoes. We need to check the current products list and find the product with the corresponding product ID. Then, we can look for the available sizes and provide that information to the user.assistant: The user is asking about the availability of sizes for the second pair of running shoes. We need to extract the product ID of the second pair of running shoes from the current products list and use it to search for more information about the available sizes.",
+        "rationale": "The user has requested to add size 10 of the third pair of running shoes to the cart. We need to extract the product ID and quantity of the third pair of running shoes from the current products list and add it to the cart.",
+        "products_with_quantity": "[{\"product_id\": 3, \"quantity\": 1}]",
+        "feedback": "\"Size 10 of the third pair of running shoes has been added to your cart.\""
+      },
+      {
+        "user_input": "add thired one to cart",
+        "user_id": "20"
       }
     ],
     "signature_instructions": "Extract product IDs and quantities for add to cart intent.",
-    "signature_prefix": "Products With Quantity:"
+    "signature_prefix": "Feedback:"
   },
   "ProductInfoExtraction": {
     "lm": null,
@@ -203,42 +136,12 @@
     "train": [],
     "demos": [
       {
-        "user_input": "give more info about the black hoodie",
-        "current_products": [
-          {
-            "_id": 1,
-            "name": "black hoodie"
-          },
-          {
-            "_id": 2,
-            "name": "green hoodie"
-          },
-          {
-            "_id": 3,
-            "name": "blue hoodie"
-          }
-        ]
-      },
-      {
-        "user_input": "add three blue hood",
-        "current_products": [
-          {
-            "_id": 1,
-            "name": "black hoodie"
-          },
-          {
-            "_id": 2,
-            "name": "green hoodie"
-          },
-          {
-            "_id": 3,
-            "name": "blue hoodie"
-          }
-        ]
+        "user_input": "add thired one to cart",
+        "user_id": "20"
       }
     ],
     "signature_instructions": "Extract one product ID user need to know more info about.",
-    "signature_prefix": "Query:"
+    "signature_prefix": "Feedback:"
   },
   "SummerizeProductInfo": {
     "lm": null,
@@ -246,38 +149,8 @@
     "train": [],
     "demos": [
       {
-        "user_input": "give more info about the black hoodie",
-        "current_products": [
-          {
-            "_id": 1,
-            "name": "black hoodie"
-          },
-          {
-            "_id": 2,
-            "name": "green hoodie"
-          },
-          {
-            "_id": 3,
-            "name": "blue hoodie"
-          }
-        ]
-      },
-      {
-        "user_input": "add three blue hood",
-        "current_products": [
-          {
-            "_id": 1,
-            "name": "black hoodie"
-          },
-          {
-            "_id": 2,
-            "name": "green hoodie"
-          },
-          {
-            "_id": 3,
-            "name": "blue hoodie"
-          }
-        ]
+        "user_input": "add thired one to cart",
+        "user_id": "20"
       }
     ],
     "signature_instructions": "use search results to summerize product info that user need to know more info about.",
