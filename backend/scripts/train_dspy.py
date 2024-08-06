@@ -92,18 +92,33 @@ def recomendation_system_metric(example, pred, trace=None):
     print(info_extracted)
     print(feedback_correct)
     correct, info_extracted , feedback_correct = [m.assessment_answer.lower() == 'yes' for m in [correct, info_extracted,feedback_correct]]
-    score = (correct + info_extracted ,feedback_correct) 
+    score = (correct + info_extracted +feedback_correct) 
     # if trace is not None: return score >= 2
     return score / 3.0
 
 # Prepare training data
 trainset = [
-    dspy.Example( user_input="need nice hoodie" , user_id="10").with_inputs("user_input","user_id"),
-    dspy.Example( user_input="give more information about the first hoodie" , user_id="10").with_inputs("user_input","user_id"),
-    dspy.Example( user_input="add three from first hoodie to cart and also two from product 5" , user_id="10").with_inputs("user_input","user_id"),
-    dspy.Example( user_input="i need do some excersise do you have workout equipment" , user_id="20").with_inputs("user_input","user_id"),
-    dspy.Example( user_input="how to use the third one" , user_id="20").with_inputs("user_input","user_id"),
-    dspy.Example( user_input="add thired one to cart" , user_id="20").with_inputs("user_input","user_id"),
+    dspy.Example(user_input="need nice hoodie", user_id="10").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="give more information about the first hoodie", user_id="10").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="add three from first hoodie to cart and also two from product 5", user_id="10").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="i need do some excersise do you have workout equipment", user_id="20").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="how to use the third one", user_id="20").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="add thired one to cart", user_id="20").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="looking for a new smartphone", user_id="30").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="what's the battery life on the second phone?", user_id="30").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="add the phone with best camera to cart", user_id="30").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="need a good book to read", user_id="40").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="tell me more about the author of the third book", user_id="40").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="add two copies of the bestseller to my cart", user_id="40").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="looking for running shoes", user_id="50").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="what sizes are available for the second pair?", user_id="50").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="add size 10 of the third pair to cart", user_id="50").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="need a new laptop for work", user_id="60").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="what's the processor speed of the first laptop?", user_id="60").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="add the laptop with most RAM to cart", user_id="60").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="looking for a gift for my mom", user_id="70").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="is the fourth item available in blue?", user_id="70").with_inputs("user_input", "user_id"),
+    dspy.Example(user_input="add one of each color of the second item to cart", user_id="70").with_inputs("user_input", "user_id"),
 
 ]
 

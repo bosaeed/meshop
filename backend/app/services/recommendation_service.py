@@ -162,7 +162,7 @@ class AddToCartExtraction(dspy.Signature):
     chat_history = dspy.InputField()
     current_products = dspy.InputField()
     user_input = dspy.InputField()
-    products_with_quantity :str= dspy.OutputField(desc="List of dicts with 'product_id' and 'quantity' if quantity not provided put 1")
+    products_with_quantity :str= dspy.OutputField(desc="List of dicts with match this form [{\"product_id\":5  \"quantity\":2} , ...] if quantity not provided put 1 in this form ")
     feedback = dspy.OutputField(desc="tell to user brive feedback. limit to 10 words or less.")
 
 class ProductInfoExtraction(dspy.Signature):

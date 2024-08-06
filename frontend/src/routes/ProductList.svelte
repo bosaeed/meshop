@@ -133,6 +133,7 @@ function toggleSpeaker() {
         
         newRecommendations.cart_items.forEach((prod ) => {
           let qty = prod.quintity;
+          prod.sale_price = prod.sale_price / qty
           delete prod.quintity;
           addItemToCartAndOpenSidebar(prod , qty);
         });
