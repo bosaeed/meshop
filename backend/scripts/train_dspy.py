@@ -75,11 +75,11 @@ def recomendation_system_metric(example, pred, trace=None):
     feedback_correct = f"Does output feedback `{feedback}` correctly respond to the user's input `{user_input}`?"
 
     if(action == "add_to_cart"):
-        info_extracted = f"Does output action `{action}` extract all the necessary information from the user's input `{user_input}`?"
+        info_extracted = f"Does output `{pred.cart_items}` extract all the necessary information from the user's input `{user_input}`?"
     elif(action == "more_info"):
-        info_extracted = f"Does output action `{action}` extract the necessary information from the user's input `{user_input}`?"
+        info_extracted = f"Does output `{pred.summery}` cover needed information by the user's input `{user_input}`?"
     elif(action == "recommend"):
-        info_extracted = f"Does output action `{action}` extract the necessary information from the user's input `{user_input}`?"
+        info_extracted = f"Does output products `{pred.products}` match required products from the user's input `{user_input}`?"
     else:
         info_extracted = f"Does output action `{action}` correctly respond to the user's input `{user_input}`?"
     
