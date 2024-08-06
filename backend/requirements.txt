@@ -10,3 +10,4 @@ pydantic[email]
 passlib
 langtrace_python_sdk
 nest_asyncio
+python-telegram-bot
