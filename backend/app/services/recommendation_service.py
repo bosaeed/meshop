@@ -386,8 +386,11 @@ class RecommendationSystem(dspy.Module):
             }))
             
 def call_async(coro):
-    loop = asyncio.get_running_loop()
-    return loop.run_until_complete(coro)
+    try:
+        loop = asyncio.get_running_loop()
+        return loop.run_until_complete(coro)
+    except:
+        return asyncio.run(coro)
 
     
 def process_user_input(user_input: str ,websocket = None, user_id = ""):

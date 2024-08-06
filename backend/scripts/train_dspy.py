@@ -13,8 +13,9 @@ from dspy.teleprompt import BootstrapFewShot
 from app.services.recommendation_service import RecommendationSystem , process_user_input
 from dotenv import load_dotenv
 from dspy.primitives.assertions import assert_transform_module, backtrack_handler
-import asyncio
+import nest_asyncio
 
+nest_asyncio.apply()
 load_dotenv()
 
 YOUR_SAVE_PATH = "recomendation_system.json"
