@@ -9,11 +9,11 @@ from functools import partial
 import logging
 import json
 import asyncio
-import nest_asyncio
+
 from pydantic import BaseModel,Field, ValidationError
 import re
 import ast
-nest_asyncio.apply()
+
 
 dspy.logger.level =  logging.INFO
 # Create a console handler

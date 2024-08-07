@@ -7,7 +7,8 @@ from app.routers.websocket import handle_connection  # Import the WebSocket hand
 from app.routers.telegram import handle_telegram_update
 from dotenv import load_dotenv
 import os
-
+import nest_asyncio
+nest_asyncio.apply()
 
 
 load_dotenv()

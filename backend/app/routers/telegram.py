@@ -53,8 +53,10 @@ async def handle_message(update: Update, context):
     user_id = update.effective_sender.id
     
     user_input = update.message.text
-    tsender = TelegramSender(update)
-    await tsender.send_text("...",True)
+    # tsender = TelegramSender(update)
+    await update.message.reply_text("...")
+
+    tsender = None
     prediction = process_user_input(user_input,tsender,user_id=user_id)
     
     output = {}
@@ -69,27 +71,27 @@ async def handle_message(update: Update, context):
                 # media_group.append(InputMediaPhoto(media=product['images'][0], caption=caption,show_caption_above_media=True))
                 await update.message.reply_photo(photo=product['images'][0], caption=caption,show_caption_above_media=True)
             else:
-                await tsender.send_text(caption,True)
+                await update.message.reply_text(caption)
         if media_group:
-            await tsender.reply_media_group(media=media_group)
+            await update.message.reply_media_group(media=media_group)
         elif (len(prediction.products) < 1):
-            await tsender.send_text("Sorry, I couldn't find any products to recommend.",True)
+            await update.message.reply_text("Sorry, I couldn't find any products to recommend.")
 
 
 
     elif prediction.action == 'add_to_cart':
         cart_items = "\n".join([f"{item['name']} (x{item['quantity']}) - {item['sale_price']}" for item in prediction.current_cart])
-        await tsender.send_text(f"Added to cart:\n{cart_items}",True)
+        await update.message.reply_text(f"Added to cart:\n{cart_items}")
 
 
 
 
     elif prediction.action == 'more_info':
-        await tsender.send_text(f"💬: {prediction.summery}",True)
+        await update.message.reply_text(f"💬: {prediction.summery}")
 
-    await tsender.send_text(prediction.feedback,True)
+    await update.message.reply_text(prediction.feedback)
 
-    # return json.dumps(output, cls=JSONEncoder)
+    return json.dumps(output, cls=JSONEncoder)
 
 async def handle_telegram_update(data , user_id=" "):
     # Create the Application
