@@ -28,9 +28,11 @@ class TelegramSender():
             await self.last_wait.edit_text(msg)
             self.last_wait = None
         elif(msg == "wait..."):
+            print("send wait text")
             self.last_wait = await self.update.message.reply_text(msg)
 
         else:
+            print("send reply_text")
             await self.update.message.reply_text(msg)
 
     async def reply_media_group(self,media):
@@ -52,7 +54,7 @@ async def handle_message(update: Update, context):
     
     user_input = update.message.text
     tsender = TelegramSender(update)
-    tsender.send_text("...",True)
+    await tsender.send_text("...",True)
     prediction = process_user_input(user_input,tsender,user_id=user_id)
     
     output = {}
