@@ -54,17 +54,21 @@ async def recommendation_websocket(websocket: WebSocket , user_id):
     print(user_id)
     # print(request.args.get('user'))
     # url.parse(websocket.url, true).query
-    await websocket.accept()
 
-    # buffer = bytearray()
-    while True:
+    try:
+        await websocket.accept()
+
+        # buffer = bytearray()
+        while True:
 
 
-        data = await websocket.receive_text()
-        print(data)
-        output = await handle_connection(data, websocket=websocket ,user_id=user_id)  # Call the new WebSocket handler (adjust as necessary)
-        if output:
-            await websocket.send_text(output)
+            data = await websocket.receive_text()
+            print(data)
+            output = await handle_connection(data, websocket=websocket ,user_id=user_id)  # Call the new WebSocket handler (adjust as necessary)
+            if output:
+                await websocket.send_text(output)
+    except Exception as e:
+        print(f"WebSocket error: {type(e).__name__}:{e}")
 
 @app.post(f"/telegram/{os.getenv('TELEGRAM_WEBHOOK_PATH')}")
 async def telegram_webhook(update: Request):
